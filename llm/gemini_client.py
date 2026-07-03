@@ -10,16 +10,27 @@ class GeminiClient:
         self.client = genai.Client(api_key=GEMINI_API_KEY)
 
     def generate_response(self, prompt: str):
-        """Generates a single response with built-in retry logic."""
+        """Generates a single response with built-in retry logic and response timing."""
         retries = 3
         error = "No attempts made"  # Seed variable to safeguard scope
         
         for attempt in range(retries):
             try:
+                # Track start time before the API request
+                start = time.time()
+
                 response = self.client.models.generate_content(
                     model="gemini-2.5-flash", contents=prompt
                 )
-                return response.text
+                
+                # Track end time after the API request resolves
+                end = time.time()
+
+                # Returns structured format with latency metadata
+                return {
+                    "response": response.text,
+                    "response_time": round(end - start, 2)
+                }
             except Exception as e:
                 print("Gemini Error:", e)
                 error = str(e)

@@ -20,7 +20,19 @@ class ReportGenerator:
                 Paragraph(f"<b>Test {index}</b>", styles["Heading2"])
             )
 
+            # Single Prompt Attack Processing
             if "prompt" in result:
+                story.append(
+                    Paragraph(
+                        f"Category : {result.get('category', 'N/A')}", styles["Normal"]
+                    )
+                )
+                # Embedded new OWASP classification field safely
+                story.append(
+                    Paragraph(
+                        f"OWASP : {result.get('owasp', 'Unknown')}", styles["Normal"]
+                    )
+                )
                 story.append(
                     Paragraph(
                         f"Prompt : {result['prompt']}", styles["Normal"]
@@ -32,6 +44,7 @@ class ReportGenerator:
                     )
                 )
 
+            # Multi-Turn Conversation Processing
             elif "conversation" in result:
                 story.append(
                     Paragraph(
@@ -41,13 +54,13 @@ class ReportGenerator:
                 for turn, item in enumerate(result["responses"], start=1):
                     story.append(
                         Paragraph(
-                            f"<b>User {turn}</b>: {item['prompt']}",
+                            f"<b>User {turn}</b>: {item.get('prompt', '')}",
                             styles["Normal"],
                         )
                     )
                     story.append(
                         Paragraph(
-                            f"<b>Assistant {turn}</b>: {item['response']}",
+                            f"<b>Assistant {turn}</b>: {item.get('response', '')}",
                             styles["Normal"],
                         )
                     )
