@@ -5,7 +5,6 @@ import requests
 class OllamaClient:
 
     def __init__(self):
-        # Switched to the chat endpoint to support structured conversation arrays
         self.url = "http://localhost:11434/api/chat"
         self.model = "llama2"
 
@@ -22,7 +21,13 @@ class OllamaClient:
         }
 
         try:
-            # Added execution tracking duration block
+            print("\n" + "=" * 60)
+            print("OLLAMA REQUEST STARTED")
+            print("=" * 60)
+            print(f"Model : {self.model}")
+            print(f"Prompt Length : {len(prompt)} characters")
+            print("Sending request to Ollama...")
+
             start = time.time()
 
             response = requests.post(
@@ -30,20 +35,48 @@ class OllamaClient:
                 json=payload,
                 timeout=120
             )
-            response.raise_for_status()
-            
-            data = response.json()
+
             end = time.time()
 
-            # Adjusted to read from the structured message payload safely
+            print("HTTP Request Finished")
+            print("Status Code :", response.status_code)
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            print("Received JSON from Ollama")
+            print("Response Time :", round(end - start, 2), "seconds")
+
+            if "message" not in data:
+                print("Unexpected Response:")
+                print(data)
+
+                return {
+                    "response": str(data),
+                    "response_time": round(end - start, 2)
+                }
+
+            print("Response successfully extracted.")
+            print("=" * 60)
+
             return {
                 "response": data["message"]["content"],
                 "response_time": round(end - start, 2)
             }
+
         except Exception as e:
-            return f"OLLAMA ERROR : {e}"
+
+            print("\nOLLAMA ERROR")
+            print(e)
+
+            return {
+                "response": f"OLLAMA ERROR : {e}",
+                "response_time": 0
+            }
 
     def generate_conversation(self, messages):
+
         payload = {
             "model": self.model,
             "messages": messages,
@@ -51,12 +84,24 @@ class OllamaClient:
         }
 
         try:
+
+            print("\nSending conversation request to Ollama...")
+
             response = requests.post(
                 self.url,
                 json=payload,
                 timeout=120
             )
+
             response.raise_for_status()
+
+            print("Conversation response received.")
+
             return response.json()["message"]["content"]
+
         except Exception as e:
+
+            print("\nConversation Error")
+            print(e)
+
             return f"OLLAMA ERROR : {e}"

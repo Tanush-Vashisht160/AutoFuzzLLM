@@ -26,7 +26,7 @@ def render_batch_campaign_tab(prompt_data, engines):
     
     providers = st.multiselect(
         "LLM Providers",
-        ["Gemini", "Llama2"],
+        ["Gemini","Groq","OpenRouter","Llama2"],
         default=["Llama2"]
     )
 
@@ -51,6 +51,9 @@ def render_batch_campaign_tab(prompt_data, engines):
         )
 
     num_mutations = st.slider("Maximum Mutations", min_value=1, max_value=20, value=10)
+    # ------------------------------------
+# Mutation Engine
+# ------------------------------------
 
     if st.button("🚀 Start Fuzzing Campaign"):
         loader_box = st.empty()
