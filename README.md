@@ -85,15 +85,26 @@ Where:
 * $C_{efficiency}(x)$ tracks efficiency constraints, penalizing overly long token arrays to keep the adversarial prompt concise.
 * $w_1, w_2, w_3$ represent normalization and scaling weights where $\sum w_i = 1.0$.
 
-### Selection and Reward Realignment
+### Selection and Reward Strategy
 
-To balance exploitation of effective prompt mutations with exploration of novel vulnerability vectors, the engine tracks parent-child lineage. The updated selection probability $P(x)$ for any seed within a tournament pool size $T$ is defined relative to its ranked fitness position:
+To maintain a balance between **exploring new prompt variations** and **reusing successful prompts**, AutoFuzzLLM assigns each seed a fitness score. Prompts with higher fitness have a greater chance of being selected for the next generation.
 
-$$P(x) = \frac{F(x)}{\sum_{j=1}^{N} F(j)}$$
+The selection probability of a seed is calculated as:
 
-If a seed produces child prompts that continuously bypass safety filters, its underlying mutation operator receives an updated allocation weight inside the mutation sampler, adapting the framework's overall search trajectory.
+$$
+P(x)=\frac{F(x)}{\sum_{j=1}^{N}F(j)}
+$$
 
----
+where:
+
+- **\(P(x)\)** = Probability of selecting seed \(x\)
+- **\(F(x)\)** = Fitness score of seed \(x\)
+- **\(N\)** = Total number of seeds in the current seed pool
+
+This means that prompts with higher fitness are **more likely** to be selected, but lower-fitness prompts still have a chance, helping maintain diversity in the search.
+
+As the campaign progresses, successful prompts generate new child prompts. If a particular mutation operator (such as **Roleplay**, **Authority**, or **Persona**) consistently produces high-quality mutations, it is selected more frequently in future generations. This allows the framework to gradually focus on mutation strategies that are more effective at discovering vulnerabilities while still exploring new attack paths.
+
 
 ## 3. Directory Structure & Component Significance
 
