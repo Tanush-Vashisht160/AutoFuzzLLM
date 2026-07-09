@@ -1,0 +1,160 @@
+/* ==========================
+   GLOBAL
+========================== */
+
+/* Main text */
+html,
+body,
+p,
+div,
+label,
+span {
+    color: #1A1A1A; /* Dark charcoal for general readability */
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: #000000 !important;
+    font-weight: 700;
+}
+
+/* Caption */
+[data-testid="stCaptionContainer"] {
+    color: #666666; /* Muted grey for captions */
+}
+
+/* ==========================
+   SIDEBAR
+========================== */
+
+[data-testid="stSidebar"] {
+    background: #1A1A1A; /* Dark background for sidebar */
+    border-right: 1px solid #333333;
+}
+
+[data-testid="stSidebar"] * {
+    color: #FFFFFF !important; /* Forces all sidebar child elements to be white */
+}
+
+/* ==========================
+   TABS (Batch Fuzzing / Live Conversation)
+========================== */
+
+button[data-baseweb="tab"] {
+    background: #F0F2F6; /* Light grey for inactive tabs */
+    color: #1A1A1A !important;
+    border-radius: 10px;
+    margin-right: 5px;
+    border: 1px solid #E0E0E0;
+}
+
+/* Fixes invisible text when switching between tabs */
+button[data-baseweb="tab"][aria-selected="true"] {
+    background: #000000 !important; 
+}
+
+button[data-baseweb="tab"][aria-selected="true"] * {
+    color: #FFFFFF !important; /* Forces inner text/spans to be white when active */
+}
+
+/* ==========================
+   BUTTONS (Start Fuzzing Campaign)
+========================== */
+
+.stButton>button {
+    background: #000000 !important; /* Black button */
+    color: #FFFFFF !important;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+/* Fixes invisible text inside the button container */
+.stButton>button * {
+    color: #FFFFFF !important; 
+}
+
+.stButton>button:hover {
+    background: #333333 !important; /* Dark grey on hover */
+}
+
+.stButton>button:hover * {
+    color: #FFFFFF !important;
+}
+
+/* ==========================
+   INPUTS
+========================== */
+
+.stTextInput input,
+.stTextArea textarea {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+    border: 2px solid #E0E0E0;
+    border-radius: 10px;
+}
+
+.stTextInput input:focus,
+.stTextArea textarea:focus {
+    border-color: #000000;
+}
+
+/* ==========================
+   SELECT BOX
+========================== */
+
+.stSelectbox div[data-baseweb="select"] {
+    background: #FFFFFF;
+    color: #000000;
+    border: 1px solid #E0E0E0;
+    border-radius: 10px;
+}
+
+/* ==========================
+   METRICS
+========================== */
+
+[data-testid="metric-container"] {
+    background: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+[data-testid="metric-container"] * {
+    color: #000000 !important; /* Ensures metric text/numbers are black */
+}
+
+/* ==========================
+   EXPANDER
+========================== */
+
+.streamlit-expanderHeader {
+    background: #F0F2F6; /* Light grey header */
+    color: #000000 !important;
+    border-radius: 10px;
+}
+
+.streamlit-expanderHeader * {
+    color: #000000 !important;
+}
+
+/* ==========================
+   TABLE
+========================== */
+
+.stDataFrame {
+    background: #FFFFFF;
+}
+
+/* ==========================
+   CODE
+========================== */
+
+code {
+    background: #F0F2F6;
+    color: #000000; 
+    padding: 2px 6px;
+    border-radius: 4px;
+}

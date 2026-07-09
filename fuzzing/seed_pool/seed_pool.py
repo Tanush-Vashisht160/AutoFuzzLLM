@@ -14,6 +14,7 @@ class SeedPool:
     def __init__(self):
 
         self.seeds = []
+        self.max_pool_size = 100
 
     # -------------------------------------------------
     # Add Existing Seed Object
@@ -22,9 +23,9 @@ class SeedPool:
     def add_seed(self, seed: Seed):
 
         self.seeds.append(seed)
-
+        self.prune_pool()
     # -------------------------------------------------
-    # Create New Seed
+    # Create New Seed (Updated with adaptive fitness parameters)
     # -------------------------------------------------
 
     def add_prompt(
@@ -32,6 +33,10 @@ class SeedPool:
         prompt,
         parent=None,
         score=0,
+        fitness=0,
+        confidence=0,
+        success=False,
+        attack_category="Unknown",
         generation=0,
         operator="Original"
     ):
@@ -40,11 +45,16 @@ class SeedPool:
             prompt=prompt,
             parent=parent,
             score=score,
+            fitness=fitness,
+            confidence=confidence,
+            success=success,
+            attack_category=attack_category,
             generation=generation,
             operator=operator
         )
 
         self.seeds.append(seed)
+        self.prune_pool()
 
         return seed
 
@@ -60,7 +70,7 @@ class SeedPool:
         return random.choice(self.seeds)
 
     # -------------------------------------------------
-    # Best Seed
+    # Best Seed (Updated to select by Fitness)
     # -------------------------------------------------
 
     def get_best_seed(self):
@@ -70,7 +80,7 @@ class SeedPool:
 
         return max(
             self.seeds,
-            key=lambda seed: seed.score
+            key=lambda seed: seed.fitness
         )
 
     # -------------------------------------------------
@@ -106,15 +116,31 @@ class SeedPool:
 
         self.seeds.clear()
 
+    def prune_pool(self):
+    #Keep only the highest-fitness seeds
+
+        if len(self.seeds) <= self.max_pool_size:
+            return
+
+        self.seeds.sort(
+            key=lambda seed: seed.fitness,
+            reverse=True
+        )
+
+        removed = len(self.seeds) - self.max_pool_size
+
+        self.seeds = self.seeds[:self.max_pool_size]
+
+        print(f"SeedPool Pruned : Removed {removed} weak seeds")
     # -------------------------------------------------
-    # Score-Based Selection
+    # Score/Fitness-Based Selection
     # -------------------------------------------------
 
     def get_best_or_random(self, explore_rate=0.30):
         """
         Hybrid selection.
 
-        70% -> Best seed
+        70% -> Best seed (highest fitness)
 
         30% -> Random seed
         """
@@ -131,3 +157,32 @@ class SeedPool:
         print("Selection Strategy : Best Seed")
 
         return self.get_best_seed()
+    
+
+    def get_weighted_seed(self):
+
+        if not self.seeds:
+            return None
+
+        total = sum(
+            max(seed.fitness, 1)
+            for seed in self.seeds
+        )
+
+        pick = random.uniform(0, total)
+
+        current = 0
+
+        for seed in self.seeds:
+
+            current += max(seed.fitness, 1)
+
+            if current >= pick:
+
+                print(
+                    f"Selection Strategy : Weighted ({seed.operator})"
+                )
+
+                return seed
+
+        return self.seeds[-1]

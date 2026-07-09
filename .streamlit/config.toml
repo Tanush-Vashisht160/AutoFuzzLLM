@@ -1,0 +1,15 @@
+[theme]
+
+# Main page background (soft off-white)
+backgroundColor="#FAF7F5"
+
+# Cards, sidebar sections, expanders
+secondaryBackgroundColor="#FFFFFF"
+
+# Main accent color
+primaryColor="#B23A48"
+
+# Main text
+textColor="#2E2E2E"
+
+font="sans serif"

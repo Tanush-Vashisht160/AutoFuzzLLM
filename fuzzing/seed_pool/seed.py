@@ -10,32 +10,31 @@ class Seed:
         prompt,
         parent=None,
         score=0,
+        fitness=0,
+        confidence=0,
+        success=False,
+        attack_category="Unknown",
         generation=0,
         operator="Original"
     ):
 
         self.prompt = prompt
 
-        # Parent seed
         self.parent = parent
-
-        # Children produced from this seed
         self.children = []
 
-        # Oracle score
         self.score = score
+        self.fitness = fitness
+        self.confidence = confidence
+        self.success = success
+        self.attack_category = attack_category
 
-        # Tree depth
         self.generation = generation
-
-        # Mutation operator
         self.operator = operator
 
-        # ---------- For future MCTS ----------
         self.visits = 0
         self.reward = 0
 
-        # Automatically register with parent
         if parent is not None:
             parent.children.append(self)
 
@@ -60,10 +59,20 @@ class Seed:
 
     def __repr__(self):
 
+        parent = "None"
+
+        if self.parent:
+
+            parent = self.parent.operator
+
         return (
+
             f"<Seed "
             f"gen={self.generation} "
-            f"score={self.score} "
-            f"children={len(self.children)} "
-            f"visits={self.visits}>"
+            f"operator={self.operator} "
+            f"fitness={self.fitness} "
+            f"visits={self.visits} "
+            f"reward={self.reward} "
+            f"avg={self.average_reward():.2f}>"
+
         )
