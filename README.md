@@ -278,9 +278,16 @@ These operators generate diverse adversarial prompts for testing LLM robustness.
 
 The fitness of a prompt is calculated using a heuristic scoring approach:
 
-\[
-Fitness(x)=Success(x)+Confidence(x)+Novelty(x)+Risk(x)
-\]
+$$
+Fitness(x)=
+Success(x)
++
+Confidence(x)
++
+Novelty(x)
++
+Risk(x)
+$$
 
 Where:
 
@@ -294,9 +301,9 @@ Currently AutoFuzzLLM uses heuristic optimization to prioritize useful prompts f
 
 Prompts with higher fitness are more likely to be selected:
 
-\[
-P(x) = \frac{F(x)}{\sum_{j=1}^{N} F(j)}
-\]
+$$
+P(x)=\frac{F(x)}{\sum_{j=1}^{N}F(j)}
+$$
 
 Where:
 - \(P(x)\) is the selection probability for seed \(x\).
@@ -304,9 +311,9 @@ Where:
 
 ### Average Risk
 
-\[
+$$
 \text{Average Risk} = \frac{\sum_{i=1}^{n} \text{Risk Score}_i}{n}
-\]
+$$
 
 Where \(n\) is the number of tests in the campaign.
 
@@ -324,13 +331,13 @@ Target LLM Response
  ▼          ▼
 Rule-Based  AI Judge
 Oracle      (LLM)
-      │          │
-      └────┬─────┘
-           ▼
-      Result Fusion
-           │
-           ▼
-     Final Verdict
+  │          │
+  └────┬─────┘
+       ▼
+  Result Fusion
+        │
+        ▼
+  Final Verdict
 ```
 
 ### Rule-Based Oracle
@@ -424,18 +431,25 @@ The LLM router allows switching between models without modifying the fuzzing pip
 
 A practical fitness formulation is:
 
-\[
-\text{Fitness} = \text{Attack Success} + \text{Confidence} + \text{Novelty} + \text{Oracle Score}
-\]
+$$
+\text{Fitness} =
+\text{Attack Success}
++
+\text{Confidence}
++
+\text{Novelty}
++
+\text{Oracle Score}
+$$
 
 ### Novelty Search
 
 Novelty search prevents the system from repeatedly generating nearly identical prompts.
 The current implementation uses similarity-based comparison. Future versions can integrate embedding-based semantic distance for improved novelty estimation.
 
-\[
-\text{Novelty}(p) = \frac{1}{k}\sum_{i=1}^{k} d(p, p_i)
-\]
+$$
+\text{Novelty}(p)=\frac{1}{k}\sum_{i=1}^{k} d(p,p_i)
+$$
 
 Where:
 - \(p\) is the current prompt.
