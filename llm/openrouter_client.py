@@ -15,7 +15,7 @@ class OpenRouterClient:
         )
 
         # Fast and free model
-        self.model = "qwen/qwen3-32b"
+        self.model = "microsoft/phi-3-mini-128k-instruct:free"
 
     def generate_response(self, prompt):
 
@@ -24,6 +24,7 @@ class OpenRouterClient:
             print("=" * 60)
             print("OPENROUTER REQUEST STARTED")
             print("=" * 60)
+            print("Model :", self.model)
 
             start = time.time()
 
@@ -65,7 +66,7 @@ class OpenRouterClient:
     def generate_conversation(self, messages):
 
         try:
-
+            print("Model :", self.model)
             completion = self.client.chat.completions.create(
 
                 model=self.model,

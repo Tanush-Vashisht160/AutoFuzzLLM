@@ -4,9 +4,9 @@ import requests
 
 class OllamaClient:
 
-    def __init__(self):
+    def __init__(self, model="llama2"):
         self.url = "http://localhost:11434/api/chat"
-        self.model = "llama2"
+        self.model = model
 
     def generate_response(self, prompt):
         payload = {

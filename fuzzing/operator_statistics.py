@@ -30,7 +30,7 @@ class OperatorStatistics:
 
         return max(
             self.data,
-            key=lambda x: self.average(x)
+            key=lambda op: self.average(op)
         )
 
     def summary(self):
@@ -38,9 +38,13 @@ class OperatorStatistics:
         result = {}
 
         for operator in self.data:
+
             result[operator] = {
+
                 "runs": self.data[operator]["runs"],
+
                 "average_fitness": self.average(operator)
+
             }
 
         return result

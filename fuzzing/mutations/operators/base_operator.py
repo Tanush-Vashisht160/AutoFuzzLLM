@@ -4,7 +4,18 @@ class BaseOperator:
     """
 
     category = "Unknown"
+    average_fitness = 0
 
+    runs = 0
+
+    def update(self, fitness):
+
+        self.runs += 1
+
+        self.average_fitness += (
+            fitness - self.average_fitness
+        ) / self.runs
+        
     technique = "generic"
 
     def build_prompt(self, seed_prompt):

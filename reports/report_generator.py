@@ -27,7 +27,7 @@ class ReportGenerator:
 
         for result in results:
             provider = result["provider"]
-            category = result["category"]
+            category = result["attack_category"]
             providers.add(provider)
 
             # Trace category distribution volume

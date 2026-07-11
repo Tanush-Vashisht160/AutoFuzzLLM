@@ -1,6 +1,21 @@
 import streamlit as st
 from reports.report_generator import ReportGenerator
+import streamlit as st
+from reports.report_generator import ReportGenerator
 
+
+@st.cache_data(show_spinner=False)
+def generate_pdf(campaign_id, results):
+    generator = ReportGenerator()
+    generator.create_pdf(
+        "campaign_report.pdf",
+        campaign_id,
+        results
+    )
+
+    with open("campaign_report.pdf", "rb") as f:
+        return f.read()
+    
 def render_artifact_exports(campaign_id, results, df):
     """
     Renders the raw interactive dataframe, handles CSV downloads, 
@@ -20,16 +35,15 @@ def render_artifact_exports(campaign_id, results, df):
     st.markdown("---")
     st.subheader("Export Campaign Artifacts")
     
-    generator = ReportGenerator()
-    generator.create_pdf("campaign_report.pdf", campaign_id, results)
+    pdf_bytes = generate_pdf(campaign_id, results)
 
-    with open("campaign_report.pdf", "rb") as file:
-        st.download_button(
-            "📄 Download PDF Report",
-            file,
-            file_name="campaign_report.pdf",
-            mime="application/pdf"
-        )
+    st.download_button(
+        "📄 Download PDF Report",
+        data=pdf_bytes,
+        file_name="campaign_report.pdf",
+        mime="application/pdf",
+        on_click="ignore"
+    )
 
 
 def show_report(summary):
@@ -64,4 +78,4 @@ def show_report(summary):
     for rec in summary["recommendations"]:
         st.write("•", rec)
 
-    st.success("The downloadable PDF below contains the same information in printable format.")
+    #st.success("The downloadable PDF below contains the same information in printable format.")

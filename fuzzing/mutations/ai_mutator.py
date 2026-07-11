@@ -14,8 +14,17 @@ class AIMutator:
     def generate(self, seed_prompt, count=10):
 
         mutations = []
-
         operators = self.manager.get_all()
+        operators.sort(
+
+            key=lambda op: getattr(
+                op,
+                "average_fitness",
+                0
+            ),
+
+    reverse=True
+)
 
         generated_prompts = set()
 
