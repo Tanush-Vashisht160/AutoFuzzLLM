@@ -4,16 +4,16 @@ AutoFuzzLLM is an automated evolutionary-inspired fuzzing framework for Large La
 The framework treats jailbreak discovery as a guided search problem over semantic prompt space. It combines mutation-based fuzzing, adaptive seed selection, rule-based detection, AI-assisted evaluation, novelty tracking, and structured reporting into a single pipeline.
 
 🚀 Key Features
-    Evolutionary Prompt Fuzzing — Generates multiple mutated prompts from a seed prompt.
-    Rule-Based Oracle — Detects known attack patterns using specialized detectors.
-    AI Judge — Uses an LLM to independently evaluate attack success.
-    Hybrid Fusion Engine — Combines Oracle and AI Judge results for robust decisions.
-    Novelty Scoring — Encourages diverse prompt generation.
-    Fitness-Based Selection — Prioritizes high-impact mutations.
-    Multi-LLM Support — Works with Groq, Ollama, Gemini, and OpenRouter.
-    Streamlit Dashboard — Interactive web interface for campaigns.
-    CSV & PDF Reports — Export detailed security findings.
-    OWASP LLM Mapping — Maps vulnerabilities to OWASP LLM risk categories.
+-    Evolutionary Prompt Fuzzing — Generates multiple mutated prompts from a seed prompt.
+-    Rule-Based Oracle — Detects known attack patterns using specialized detectors.
+-    AI Judge — Uses an LLM to independently evaluate attack success.
+-    Hybrid Fusion Engine — Combines Oracle and AI Judge results for robust decisions.
+-    Novelty Scoring — Encourages diverse prompt generation.
+-    Fitness-Based Selection — Prioritizes high-impact mutations.
+-   Multi-LLM Support — Works with Groq, Ollama, Gemini, and OpenRouter.
+-   Streamlit Dashboard — Interactive web interface for campaigns.
+-   CSV & PDF Reports — Export detailed security findings.
+-   OWASP LLM Mapping — Maps vulnerabilities to OWASP LLM risk categories.
 
 ## Overview
 
