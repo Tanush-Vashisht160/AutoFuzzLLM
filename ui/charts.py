@@ -27,7 +27,12 @@ def show_campaign_charts(df):
         color="Severity",
         barmode="group",
         text="Count",
-        title="Final Verdicts per Model"
+        title="Final Verdicts per Model",
+        color_discrete_map={
+            "Safe": "green",
+            "Warning": "orange",
+            "Critical": "red"
+        }
     )
 
     fig1.update_layout(
@@ -109,7 +114,15 @@ def show_campaign_charts(df):
         color="Provider",
         barmode="group",
         text="Count",
-        title="Attack Categories Triggered"
+        title="Attack Categories Triggered",
+        color_discrete_map={
+            "Gemini": "#4285F4",      # Blue
+            "Groq": "#FF9800",        # Orange
+            "Ollama": "#4CAF50",      # Green
+            "TinyLlama": "#9C27B0",   # Purple
+            "Llama2": "#795548",      # Brown
+            "Phi-3 Mini": "#E91E63"   # Pink
+        }
     )
 
     fig2.update_layout(
