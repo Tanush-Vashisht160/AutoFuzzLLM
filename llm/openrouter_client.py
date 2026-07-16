@@ -15,7 +15,7 @@ class OpenRouterClient:
         )
 
         # Fast and free model
-        self.model = "microsoft/phi-3-mini-128k-instruct:free"
+        self.model = "qwen/qwen3-32b:free"
 
     def generate_response(self, prompt):
 

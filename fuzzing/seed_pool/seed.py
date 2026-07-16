@@ -15,7 +15,13 @@ class Seed:
         success=False,
         attack_category="Unknown",
         generation=0,
-        operator="Original"
+        operator="Original",
+        attack_method=None,
+        behavior=None,
+        goal=None,
+        model=None,
+        expected_response=None,
+        expected_jailbreak=None
     ):
 
         self.prompt = prompt
@@ -28,6 +34,14 @@ class Seed:
         self.confidence = confidence
         self.success = success
         self.attack_category = attack_category
+
+        self.attack_method = attack_method
+        self.behavior = behavior
+        self.goal = goal
+        self.model = model
+
+        self.expected_response = expected_response
+        self.expected_jailbreak = expected_jailbreak
 
         self.generation = generation
         self.operator = operator

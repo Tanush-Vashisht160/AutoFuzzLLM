@@ -14,7 +14,7 @@ class SeedPool:
     def __init__(self):
 
         self.seeds = []
-        self.max_pool_size = 100
+        self.max_pool_size = 1000
 
     # -------------------------------------------------
     # Add Existing Seed Object
@@ -38,19 +38,33 @@ class SeedPool:
         success=False,
         attack_category="Unknown",
         generation=0,
-        operator="Original"
+        operator="Original",
+
+        attack_method=None,
+        behavior=None,
+        goal=None,
+        model=None,
+        expected_response=None,
+        expected_jailbreak=None
     ):
 
         seed = Seed(
-            prompt=prompt,
-            parent=parent,
-            score=score,
-            fitness=fitness,
-            confidence=confidence,
-            success=success,
-            attack_category=attack_category,
-            generation=generation,
-            operator=operator
+    prompt=prompt,
+    parent=parent,
+    score=score,
+    fitness=fitness,
+    confidence=confidence,
+    success=success,
+    attack_category=attack_category,
+    generation=generation,
+    operator=operator,
+
+    attack_method=attack_method,
+    behavior=behavior,
+    goal=goal,
+    model=model,
+    expected_response=expected_response,
+    expected_jailbreak=expected_jailbreak
         )
 
         self.seeds.append(seed)
@@ -119,7 +133,7 @@ class SeedPool:
     def prune_pool(self):
     #Keep only the highest-fitness seeds
 
-        if len(self.seeds) <= self.max_pool_size:
+        if len(self.seeds) <= self.max_pool_size + 50:
             return
 
         self.seeds.sort(
@@ -131,7 +145,7 @@ class SeedPool:
 
         self.seeds = self.seeds[:self.max_pool_size]
 
-        print(f"SeedPool Pruned : Removed {removed} weak seeds")
+        #print(f"SeedPool Pruned : Removed {removed} weak seeds")
     # -------------------------------------------------
     # Score/Fitness-Based Selection
     # -------------------------------------------------

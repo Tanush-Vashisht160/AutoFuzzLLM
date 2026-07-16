@@ -14,6 +14,7 @@ from fuzzing.oracle.ai_judge import AIJudge
 from fuzzing.oracle.fusion import ResultFusion
 from fuzzing.novelty import NoveltySearch
 from utils.response_summary import summarize_response
+from datasets.artifact_loader import ArtifactLoader
 # ======================================
 # Evolution Parameters
 # ======================================
@@ -50,8 +51,28 @@ class FuzzCampaign:
         print("NEW CAMPAIGN STARTED")
         print("=" * 60)
 
-        # Add the original prompt to the Seed Pool
-        self.seed_pool.add_prompt(prompt=seed_prompt, generation=0, operator="Original")
+        # ---------------------------------------
+        # Load benchmark attack artifacts
+        # ---------------------------------------
+
+        loader = ArtifactLoader()
+
+        benchmark_prompts = loader.load()
+
+        print(f"Loaded {len(benchmark_prompts)} benchmark prompts into SeedPool.")
+
+        for item in benchmark_prompts:
+
+            self.seed_pool.add_prompt(
+                prompt=item["prompt"],
+                attack_category=item["category"],
+                generation=0,
+                operator=item["attack_method"],
+                fitness=1,
+                score=0,
+                confidence=0,
+                success=False
+            )
         print()
         print("Seed Pool Size :", self.seed_pool.size())
         print("Current Seeds:")

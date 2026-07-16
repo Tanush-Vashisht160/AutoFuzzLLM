@@ -1,10 +1,9 @@
-from pathlib import Path
-from benchmark.benchmark_loader import BenchmarkLoader
+from datasets.artifact_loader import ArtifactLoader
 
-loader = BenchmarkLoader()
+loader = ArtifactLoader("datasets/attack-artifacts")
 
-path = Path("datasets") / "test.json"
+data = loader.load()
 
-data = loader.load(path)
+print(len(data))
 
-print(data)
+print(data[0])
