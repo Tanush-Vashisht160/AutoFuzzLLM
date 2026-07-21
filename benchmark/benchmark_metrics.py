@@ -22,8 +22,8 @@ class BenchmarkMetrics:
         )
         
         avg_confidence = (
-            sum(r["oracle_confidence"] for r in results)
-            / total
+            sum(r.get("confidence", 0) for r in results)
+            / len(results)
         )
         
         refusals = sum(

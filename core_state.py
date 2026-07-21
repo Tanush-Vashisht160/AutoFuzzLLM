@@ -20,17 +20,8 @@ def get_core_engines():
     }
 
 def initialize_application_state():
-    """Validates runtime state history arrays and loads seed prompt datasets."""
-    # Initialize Chat State History
+
     if "messages" not in st.session_state:
         st.session_state.messages = []
-        
-    # Load Prompt Dataset
-    try:
-        with open("datasets/seed_prompts.json", "r") as file:
-            prompt_data = json.load(file)
-    except FileNotFoundError:
-        prompt_data = {}
-        st.error("Critical Error: 'datasets/seed_prompts.json' dataset file could not be found.")
-        
-    return prompt_data
+
+    return {}

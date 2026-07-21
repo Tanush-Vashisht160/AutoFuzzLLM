@@ -14,17 +14,26 @@ class LLMRouter:
         self.openrouter = OpenRouterClient()
 
     def generate(self, prompt):
-        if self.provider == "Gemini":
-            return self.gemini.generate_response(prompt)
-        elif self.provider in ["Llama2", "Ollama"]:
-            return self.llama2.generate_response(prompt)
-        elif self.provider == "Phi3 Mini":
-            return self.phi3.generate_response(prompt)
-        elif self.provider == "OpenRouter":
-            return self.openrouter.generate_response(prompt)
-        elif self.provider == "Groq":
-            return self.groq.generate_response(prompt)
-        return "Unknown Provider"
+        if self.provider=="Gemini":
+            result = self.gemini.generate_response(prompt)
+
+        elif self.provider in ["Llama2","Ollama"]:
+            result = self.llama2.generate_response(prompt)
+
+        elif self.provider=="Phi3 Mini":
+            result = self.phi3.generate_response(prompt)
+
+        elif self.provider=="Groq":
+            result = self.groq.generate_response(prompt)
+
+        elif self.provider=="OpenRouter":
+            result = self.openrouter.generate_response(prompt)
+        else:
+            return "Unknown Provider"
+        
+        if isinstance(result, dict):
+            return result.get("response","")
+        return result
 
     def generate_conversation(self, history):
         if self.provider == "Gemini":

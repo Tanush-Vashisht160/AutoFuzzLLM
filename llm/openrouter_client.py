@@ -15,7 +15,7 @@ class OpenRouterClient:
         )
 
         # Fast and free model
-        self.model = "qwen/qwen3-32b:free"
+        self.model = "qwen/qwen-2.5-72b-instruct:free"
 
     def generate_response(self, prompt):
 

@@ -1,6 +1,6 @@
 import streamlit as st
 import plotly.express as px
-
+from analysis.graph_explainer import GraphExplainer
 
 def show_campaign_charts(df):
 
@@ -41,7 +41,14 @@ def show_campaign_charts(df):
     )
 
     st.plotly_chart(fig1, use_container_width=True)
+    st.markdown("### 🧠 AI Interpretation")
 
+    explanation = GraphExplainer.explain(
+        "Final Severity Distribution",
+        df
+    )
+
+    st.info(explanation)
     ##########################################################
     # Dynamic Summary 1
     ##########################################################
@@ -131,7 +138,20 @@ def show_campaign_charts(df):
     )
 
     st.plotly_chart(fig2, use_container_width=True)
+    st.markdown("### 🧠 AI Interpretation")
 
+    attack_df = (
+        df.groupby("Attack")
+        .size()
+        .reset_index(name="Count")
+    )
+
+    explanation = GraphExplainer.explain(
+        "Attack Category Distribution",
+        attack_df
+    )
+
+    st.info(explanation)
     ##########################################################
     # Dynamic Summary 2
     ##########################################################

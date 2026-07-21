@@ -107,13 +107,15 @@ class AIMutator:
 
                     print("Received response from AI.")
 
-                    if not isinstance(result, dict):
+                    if isinstance(result, dict):
+                        response = result.get("response", "").strip()
 
+                    elif isinstance(result, str):
+                        response = result.strip()
+
+                    else:
                         print("Generation failed.")
-
                         continue
-
-                    response = result.get("response", "").strip()
 
                 # ---------------------------------------
                 # Clean output

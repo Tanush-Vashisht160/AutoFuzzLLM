@@ -22,9 +22,9 @@ class DatabaseManager:
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-            timestamp TEXT,
+            created_at TEXT,
 
-            attack_category TEXT,
+            provider TEXT,
 
             seed_prompt TEXT
 
@@ -54,8 +54,8 @@ class DatabaseManager:
 
     def create_campaign(
         self,
-        timestamp,
-        category,
+        created_at,
+        provider,
         seed_prompt
     ):
 
@@ -64,16 +64,16 @@ class DatabaseManager:
             """
             INSERT INTO campaigns
             (
-                timestamp,
-                attack_category,
+                created_at,
+                provider,
                 seed_prompt
             )
             VALUES (?, ?, ?)
             """,
 
             (
-                timestamp,
-                category,
+                created_at,
+                provider,
                 seed_prompt
             )
         )
