@@ -23,6 +23,10 @@ class PromptMutator:
         """
         Generate multiple mutated prompts from a seed prompt
         """
+        if isinstance(seed_prompt, list):
+            seed_prompt = " ".join(map(str, seed_prompt))
+
+        seed_prompt = str(seed_prompt)
 
         mutations = []
 
@@ -31,13 +35,41 @@ class PromptMutator:
             if not strategy:
                 strategy = random.choice(self.strategies)
 
-            mutated_prompt = self.apply_strategy(seed_prompt, strategy)
+            mutation = self.apply_strategy(
+                seed_prompt,
+                strategy
+            )
+
+            # ----------------------------
+            # Normalize mutation output
+            # ----------------------------
+
+            if isinstance(mutation, dict):
+
+                if "prompt" not in mutation:
+                    raise ValueError(
+                        "Template mutation missing 'prompt' field."
+                    )
+
+                mutated_prompt = mutation["prompt"]
+
+            elif isinstance(mutation, str):
+
+                mutated_prompt = mutation
+
+            else:
+
+                raise TypeError(
+                    f"Unsupported mutation type: {type(mutation)}"
+                )
 
             mutations.append({
                 "id": str(uuid.uuid4()),
                 "seed": seed_prompt,
                 "mutation": mutated_prompt,
-                "strategy": strategy
+                "strategy": strategy,
+                "length": len(mutated_prompt)
+
             })
 
             strategy = None  # reset randomness per iteration

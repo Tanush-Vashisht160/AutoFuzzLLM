@@ -1,9 +1,25 @@
 import json
 import base64
+import random
+
 
 class TemplateMutator:
 
     def generate(self, seed):
+        """
+        Returns ONE randomly selected mutation.
+
+        Every mutation in the framework should be
+        represented as:
+
+        {
+            "category": "...",
+            "prompt": "..."
+        }
+
+        Never returns a list.
+        """
+
         mutations = []
 
         mutations.extend(self.roleplay(seed))
@@ -17,7 +33,10 @@ class TemplateMutator:
         mutations.extend(self.context_switch(seed))
         mutations.extend(self.typoglycemia(seed))
 
-        return mutations
+        if not mutations:
+            raise ValueError("TemplateMutator generated no mutations.")
+
+        return random.choice(mutations)
 
     def roleplay(self, seed):
         return [

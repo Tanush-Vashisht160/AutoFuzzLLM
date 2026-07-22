@@ -11,22 +11,25 @@ from fuzzing.mutations.ai_mutator import AIMutator
 from fuzzing.mutator import PromptMutator
 from fuzzing.novelty import NoveltySearch
 from fuzzing.operator_statistics import OperatorStatistics
-from fuzzing.oracle.ai_judge import AIJudge
+from fuzzing.oracle.groq_judge import GroqJudge
+from fuzzing.oracle.llama_judge import LlamaJudge
+from fuzzing.oracle.consensus import ConsensusEngine
 from fuzzing.oracle.fusion import ResultFusion
 from fuzzing.oracle.oracle import Oracle
 from fuzzing.seed_pool.seed_pool import SeedPool
+from fuzzing.mcts import MCTSTree
 from analysis.lvi import LVI
 from ui.evolution_tree import show_evolution_tree
 from utils.checkpoint import CampaignCheckpoint
 from utils.response_summary import summarize_response
 from utils.seed_history import SeedHistory
-
+from fuzzing.mcts.rollout import MCTSRollout
 # ======================================
 # Evolution Parameters
 # ======================================
 fitness_threshold = 30
 NOVELTY_BONUS = 20
-
+MCTS_TOP_K = 10
 
 class FuzzCampaign:
 
@@ -37,10 +40,21 @@ class FuzzCampaign:
         self.template_mutator = PromptMutator()
         self.ai_mutator = AIMutator()
         self.mutation_engine = mutation_engine
-        self.ai_judge = AIJudge()
+        self.groq_judge = GroqJudge()
+        self.llama_judge = LlamaJudge()
+        self.consensus = ConsensusEngine()
 
         # New components for adaptive fuzzing
         self.seed_pool = SeedPool()
+
+        # ---------------------------------
+        # Monte Carlo Tree Search
+        # ---------------------------------
+        self.mcts_tree = MCTSTree()
+        self.rollout = MCTSRollout(self.template_mutator)
+        # Maps prompt -> tree node
+        self.mcts_nodes = {}
+
         self.oracle = Oracle()
         self.fitness = FitnessCalculator()
         self.behavior_tracker = BehaviorTracker()
@@ -92,7 +106,7 @@ class FuzzCampaign:
         print("=" * 60)
 
         # ---------------------------------------
-        # Initialize Seed Pool
+        # Initialize Seed Pool & MCTS Tree
         # ---------------------------------------
         benchmark_prompts = []
         previous_prompts = []
@@ -113,7 +127,7 @@ class FuzzCampaign:
                 )
 
             for item in benchmark_prompts:
-                self.seed_pool.add_prompt(
+                seed = self.seed_pool.add_prompt(
                     prompt=item["prompt"],
                     attack_category=item["category"],
                     generation=0,
@@ -124,8 +138,11 @@ class FuzzCampaign:
                     success=False,
                 )
 
+                node = self.mcts_tree.add_root_prompt(seed.prompt)
+                self.mcts_nodes[seed.prompt] = node
+
             for item in previous_prompts:
-                self.seed_pool.add_prompt(
+                seed = self.seed_pool.add_prompt(
                     prompt=item["prompt"],
                     attack_category=item["attack_category"],
                     generation=0,
@@ -136,9 +153,12 @@ class FuzzCampaign:
                     success=item["success"],
                 )
 
+                node = self.mcts_tree.add_root_prompt(seed.prompt)
+                self.mcts_nodes[seed.prompt] = node
+
         # Custom Prompt Ingestion
         if seed_source in ["Custom Prompt", "Hybrid Mode ⭐"]:
-            self.seed_pool.add_prompt(
+            seed = self.seed_pool.add_prompt(
                 prompt=seed_prompt,
                 attack_category="User Prompt",
                 generation=0,
@@ -148,7 +168,10 @@ class FuzzCampaign:
                 confidence=0,
                 success=False,
             )
-            print("Custom prompt added to Seed Pool.\n")
+
+            node = self.mcts_tree.add_root_prompt(seed.prompt)
+            self.mcts_nodes[seed.prompt] = node
+            print("Custom prompt added to Seed Pool and MCTS Tree.\n")
 
             print("=" * 60)
             print("INITIAL SEED POOL")
@@ -187,19 +210,52 @@ class FuzzCampaign:
             print("=" * 60)
 
             generation_results = []
+            ########################################################
+            # MCTS Guided Top-K Selection
+            ########################################################
 
+            if generation > 0:
+
+                selected_prompts = self.mcts_tree.top_k_prompts(k=MCTS_TOP_K)
+
+                current_population = [
+
+                    seed
+
+                    for seed in self.seed_pool.get_all()
+
+                    if seed.prompt in selected_prompts
+
+                ]
+
+                if current_population:
+
+                    print("\nMCTS Selected Branches")
+
+                    print(f"Selected {len(current_population)} prompts")
+
+                else:
+
+                    current_population = list(self.seed_pool.get_all())
+
+            else:
+
+                current_population = list(self.seed_pool.get_all())
             # =====================================================
             # Evaluate EVERY seed in the current seed pool
             # =====================================================
-
-            current_population = list(self.seed_pool.get_all())
-
             # ---------------------------------------
             # Count planned tests for THIS generation
             # ---------------------------------------
             planned_tests += len(current_population) * max_tests
 
-            print(f"Processing {len(current_population)} seeds")
+            print("=" * 60)
+            print("MCTS SEARCH")
+            print("=" * 60)
+
+            print(f"Pool Size      : {self.seed_pool.size()}")
+            print(f"Selected Seeds : {len(current_population)}")
+            print("=" * 60)
 
             for seed_index, current_seed in enumerate(current_population, start=1):
 
@@ -255,7 +311,58 @@ class FuzzCampaign:
                     print("Prompt   :", attack["prompt"])
                     print("=" * 60)
 
-                    response = self.executor.run_prompt(attack["prompt"])
+                    ####################################################
+                    # MCTS Rollout Simulation
+                    ####################################################
+
+                    rollout_prompt, rollout_history = self.rollout.simulate(
+                        attack["prompt"],
+                        depth=3,
+                    )
+                    print("\nRollout")
+                    print("\n========== ROLLOUT DEBUG ==========")
+                    print(
+                        "Final Prompt Length:",
+                        len(rollout_prompt)
+                    )
+                    for index, item in enumerate(
+                        rollout_history,
+                        start=1
+                    ):
+                        print(
+                            f"Depth {index}: "
+                            f"{len(item)} chars"
+                        )
+                    print("===================================")
+                    for i, p in enumerate(rollout_history, start=1):
+
+                        print(f"{i}. {p[:80]}")
+
+                    # ----------------------------------
+                    # Final Prompt Validation
+                    # ----------------------------------
+
+                    MAX_PROMPT_LENGTH = 10000
+
+                    final_prompt = rollout_prompt
+
+                    if not isinstance(final_prompt, str):
+
+                        raise TypeError(
+                            f"Prompt must be string. "
+                            f"Received {type(final_prompt)}"
+                        )
+
+                    if len(final_prompt) > MAX_PROMPT_LENGTH:
+
+                        print(
+                            f"⚠ Prompt too large "
+                            f"({len(final_prompt)} chars)"
+                        )
+
+                        final_prompt = final_prompt[:MAX_PROMPT_LENGTH]
+
+                    response = self.executor.run_prompt(final_prompt)
 
                     if isinstance(response, dict):
                         response_text = response.get("response", "")
@@ -311,11 +418,27 @@ class FuzzCampaign:
                     attack_category = attack["category"]
                     oracle_result = self.oracle.evaluate(response_text)
                     oracle_result["attack_category"] = attack_category
-                    ai_result = self.ai_judge.evaluate(
-                        attack["prompt"], response_text
+
+                    groq_result = self.groq_judge.evaluate(
+                        attack["prompt"],
+                        response_text,
                     )
 
-                    fused_result = self.fusion.fuse(oracle_result, ai_result)
+                    llama_result = self.llama_judge.evaluate(
+                        attack["prompt"],
+                        response_text,
+                    )
+
+                    consensus_result = self.consensus.combine(
+                        oracle_result,
+                        groq_result,
+                        llama_result,
+                    )
+
+                    fused_result = self.fusion.fuse(
+                        oracle_result,
+                        consensus_result,
+                    )
 
                     # Compute Novelty and Fitness Metrics
                     population = [seed.prompt for seed in self.seed_pool.get_all()]
@@ -365,7 +488,18 @@ class FuzzCampaign:
                     if new_behavior:
                         print("⭐ New Behaviour Discovered!")
                         fitness += NOVELTY_BONUS
+                    ####################################################
+                    # MCTS Reward Calculation
+                    ####################################################
 
+                    mcts_reward = fitness
+                    mcts_reward += len(rollout_history) * 2
+                    # High vulnerability bonus
+                    mcts_reward += lvi["lvi_score"] * 0.5
+
+                    # Extra reward for discovering new behaviour
+                    if new_behavior:
+                        mcts_reward += 10
                     if current_seed is not None:
                         current_seed.visit()
                         current_seed.update_reward(fitness)
@@ -388,12 +522,40 @@ class FuzzCampaign:
                     print("Reason :", oracle_result["reason"])
                     print()
 
-                    print("AI Judge")
+                    print("Groq Judge")
                     print("-" * 40)
-                    print("Success    :", ai_result["success"])
-                    print("Confidence :", ai_result["confidence"])
-                    print("Reason     :", ai_result["reason"])
+                    print("Success    :", groq_result["success"])
+                    print("Confidence :", groq_result["confidence"])
+                    print("Reason     :", groq_result["reason"])
                     print()
+
+                    print("Llama2 Judge")
+                    print("-" * 40)
+                    print("Success    :", llama_result["success"])
+                    print("Confidence :", llama_result["confidence"])
+                    print("Reason     :", llama_result["reason"])
+                    print()
+
+                    print("Consensus")
+                    print("-" * 40)
+                    print("Weighted Score :", consensus_result["score"])
+                    print("Success        :", consensus_result["success"])
+                    print("Severity       :", consensus_result["severity"])
+                    print("Confidence     :", consensus_result["confidence"])
+                    print("Reason         :", consensus_result["reason"])
+                    print()
+
+                    print("Available Judges")
+                    print("----------------")
+                    print("Oracle :", consensus_result["oracle_available"])
+                    print("Groq   :", consensus_result["groq_available"])
+                    print("Llama  :", consensus_result["llama_available"])
+                    print()
+                    print("Weights")
+                    print("-------")
+
+                    for name, value in consensus_result["weights"].items():
+                        print(f"{name:<8}: {value:.2f}")
 
                     print("Fusion")
                     print("-" * 40)
@@ -436,9 +598,35 @@ class FuzzCampaign:
                         "oracle_refusals": oracle_result.get(
                             "matched_refusals", []
                         ),
-                        "judge_success": ai_result["success"],
-                        "judge_confidence": ai_result["confidence"],
-                        "judge_reason": ai_result["reason"],
+                        "groq_success":
+                            groq_result["success"],
+
+                        "groq_confidence":
+                            groq_result["confidence"],
+
+                        "groq_reason":
+                            groq_result["reason"],
+
+                        "llama_success":
+                            llama_result["success"],
+
+                        "llama_confidence":
+                            llama_result["confidence"],
+
+                        "llama_reason":
+                            llama_result["reason"],
+
+                        "consensus_score":
+                            consensus_result["score"],
+                        "consensus_confidence":consensus_result["confidence"],
+                        "consensus_severity":consensus_result["severity"],
+                        "consensus_reason":consensus_result["reason"],
+                        "consensus_mode": consensus_result["mode"],
+                        "oracle_available":consensus_result["oracle_available"],
+                        "groq_available":consensus_result["groq_available"],
+                        "llama_available":consensus_result["llama_available"],
+                        "consensus_weights":consensus_result["weights"],
+
                         "success": fused_result["success"],
                         "category": fused_result[
                             "attack_category"
@@ -455,6 +643,8 @@ class FuzzCampaign:
                         "lvi_level": lvi["level"],
                         "lvi_rating": lvi["rating"],
                         "lvi_formula": lvi["formula"],
+                        "rollout_depth": len(rollout_history),
+                        "rollout_history": rollout_history,
 
                         # Component Scores
                         "lvi_severity": lvi["severity"],
@@ -469,6 +659,7 @@ class FuzzCampaign:
                             else "Success"
                             if fused_result["success"]
                             else "Failed"
+
                         ),
                     }
                     print(result_payload.keys())
@@ -501,6 +692,44 @@ class FuzzCampaign:
 
                     with open(checkpoint_file, "w", encoding="utf-8") as f:
                         json.dump(results, f, indent=4, ensure_ascii=False)
+                # =====================================================
+                # MCTS Expansion
+                # =====================================================
+
+                parent_node = self.mcts_nodes.get(current_seed.prompt)
+
+                if parent_node is not None:
+
+                    new_prompt = attack.get(
+                        "prompt",
+                        attack.get("mutation", "")
+                    )
+
+                    child_node = self.mcts_tree.expand(
+                        parent=parent_node,
+                        prompt=new_prompt,
+                        mutation=attack["category"],
+                    )
+
+                    self.mcts_nodes[new_prompt] = child_node
+
+                    node = self.mcts_tree.find_prompt(new_prompt)
+
+                    self.mcts_nodes[attack["prompt"]] = child_node
+
+                    # =====================================================
+                    # MCTS Backpropagation
+                    # =====================================================
+                    node = self.mcts_tree.find_prompt(
+                        attack["prompt"]
+                    )
+
+                    if node is not None:
+
+                        self.mcts_tree.backpropagate(
+                            node=node,
+                            reward=mcts_reward,
+                        )
 
                     # Adaptive Feedback Loop: Conditional Seed Pool Ingestion
                     if (

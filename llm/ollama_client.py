@@ -9,6 +9,22 @@ class OllamaClient:
         self.model = model
 
     def generate_response(self, prompt):
+        MAX_PROMPT_LENGTH = 10000
+
+        if not isinstance(prompt, str):
+
+            raise TypeError(
+                "Ollama prompt must be string."
+            )
+
+        if len(prompt) > MAX_PROMPT_LENGTH:
+
+            raise ValueError(
+                f"Prompt length "
+                f"{len(prompt)} "
+                f"exceeds limit "
+                f"{MAX_PROMPT_LENGTH}"
+            )
         payload = {
             "model": self.model,
             "messages": [

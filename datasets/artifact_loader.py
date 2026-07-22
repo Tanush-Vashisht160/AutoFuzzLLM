@@ -84,14 +84,29 @@ class ArtifactLoader:
     #####################################################
 
     def _load_benchmark_dataset_2(self):
-
+        print("=" * 60)
+        print("Dataset Path:", self.dataset_path)
+        print("Exists:", self.dataset_path.exists())
+        print("=" * 60)
         seeds = []
+        yaml_files = list(self.dataset_path.rglob("*.yaml"))
+        yaml_files += list(self.dataset_path.rglob("*.yml"))
 
-        for yaml_file in self.dataset_path.rglob("*.yaml"):
+        print(f"Found {len(yaml_files)} YAML files")
+
+        for file in yaml_files:
+            print(file)
+
+        for yaml_file in yaml_files:
 
             try:
                 with open(yaml_file, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
+                    print("=" * 60)
+                    print("FILE:", yaml_file)
+                    print("TYPE:", type(data))
+                    print("KEYS:", data.keys() if isinstance(data, dict) else data)
+                    print("=" * 60)
 
             except Exception as e:
                 print(f"Error reading {yaml_file}: {e}")
@@ -132,3 +147,11 @@ class ArtifactLoader:
         print(f"Loaded {len(seeds)} prompts from Benchmark Dataset 2")
 
         return seeds
+    
+if __name__ == "__main__":
+
+    loader = ArtifactLoader("Benchmark Dataset 2")
+
+    prompts = loader.load()
+
+    print(f"\nLoaded {len(prompts)} prompts")
