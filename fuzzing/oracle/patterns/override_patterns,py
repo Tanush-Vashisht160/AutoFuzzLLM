@@ -1,0 +1,25 @@
+OVERRIDE_PATTERNS = {
+
+    "override": [
+
+        "system override",
+        "developer override",
+        "administrator override",
+        "security override",
+        "policy override",
+        "safety override",
+        "authorization override",
+
+    ],
+
+    "fake_authority": [
+
+        "authorized by the administrator",
+        "authorized by the developer",
+        "administrator approved",
+        "developer approved",
+        "security team approved",
+        "this is an emergency override",
+
+    ],
+}

@@ -76,7 +76,7 @@ def render_batch_campaign_tab(prompt_data, engines):
 
     providers = st.multiselect(
         "LLM Providers",
-        ["Gemini", "Groq", "OpenRouter", "Llama2", "Phi3 Mini"],
+        ["Gemini", "Groq", "OpenRouter", "Qwen 0.5B", "Phi3 Mini"],
         default=["Phi3 Mini"],
         key="providers"
     )
@@ -135,7 +135,7 @@ def render_batch_campaign_tab(prompt_data, engines):
     with st.expander("⚙️ Advanced Settings"):
         seed_pool_size = st.slider(
             "Maximum Seed Pool Size",
-            min_value=50,
+            min_value=10,
             max_value=500,
             value=100,
             step=50,

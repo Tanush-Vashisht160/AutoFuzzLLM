@@ -12,7 +12,7 @@ from fuzzing.mutator import PromptMutator
 from fuzzing.novelty import NoveltySearch
 from fuzzing.operator_statistics import OperatorStatistics
 from fuzzing.oracle.groq_judge import GroqJudge
-from fuzzing.oracle.llama_judge import LlamaJudge
+from fuzzing.oracle.qwen_judge import QwenJudge
 from fuzzing.oracle.consensus import ConsensusEngine
 from fuzzing.oracle.fusion import ResultFusion
 from fuzzing.oracle.oracle import Oracle
@@ -41,7 +41,7 @@ class FuzzCampaign:
         self.ai_mutator = AIMutator()
         self.mutation_engine = mutation_engine
         self.groq_judge = GroqJudge()
-        self.llama_judge = LlamaJudge()
+        self.qwen_judge = QwenJudge()
         self.consensus = ConsensusEngine()
 
         # New components for adaptive fuzzing
@@ -317,7 +317,7 @@ class FuzzCampaign:
 
                     rollout_prompt, rollout_history = self.rollout.simulate(
                         attack["prompt"],
-                        depth=3,
+                        depth=1,
                     )
                     print("\nRollout")
                     print("\n========== ROLLOUT DEBUG ==========")
@@ -414,25 +414,78 @@ class FuzzCampaign:
                         print("...")
                     print("-" * 40)
 
-                    # Oracles & Evaluators Pipeline
+                    # ============================================================
+                    # ORACLE-FIRST EVALUATION PIPELINE
+                    # ============================================================
                     attack_category = attack["category"]
+
+                    # ------------------------------------------------------------
+                    # 1. Run cheap rule-based Oracle FIRST
+                    # ------------------------------------------------------------
+
                     oracle_result = self.oracle.evaluate(response_text)
                     oracle_result["attack_category"] = attack_category
 
-                    groq_result = self.groq_judge.evaluate(
-                        attack["prompt"],
-                        response_text,
+                    print("\n========== ORACLE GATE ==========")
+                    print("Oracle Success :", oracle_result["success"])
+                    print("Oracle Score   :", oracle_result["score"])
+                    print("Oracle Conf.   :", oracle_result["confidence"])
+                    print("Oracle Reason  :", oracle_result["reason"])
+                    print("=================================")
+
+                    # ------------------------------------------------------------
+                    # 2. Only call expensive LLM judges when Oracle finds evidence
+                    # ------------------------------------------------------------
+
+                    oracle_suspicious = (
+                        oracle_result.get("success", False)
+                        or oracle_result.get("score", 0) > 0
                     )
 
-                    llama_result = self.llama_judge.evaluate(
-                        attack["prompt"],
-                        response_text,
-                    )
+                    if oracle_suspicious:
+
+                        print("\n⚠ Oracle detected suspicious behavior.")
+                        print("Running AI Judges...")
+
+                        groq_result = self.groq_judge.evaluate(
+                            attack["prompt"],
+                            response_text,
+                        )
+
+                        qwen_result = self.qwen_judge.evaluate(
+                            attack["prompt"],
+                            response_text,
+                        )
+
+                    else:
+
+                        print("\n✓ Oracle found no attack indicators.")
+                        print("Skipping Groq/Qwen judges.")
+
+                        groq_result = {
+                            "success": False,
+                            "confidence": 0.0,
+                            "reason": "Skipped: Oracle found no suspicious indicators.",
+                            "judge": "Groq",
+                            "available": False,
+                        }
+
+                        qwen_result = {
+                            "success": False,
+                            "confidence": 0.0,
+                            "reason": "Skipped: Oracle found no suspicious indicators.",
+                            "judge": "Qwen 0.5B",
+                            "available": False,
+                        }
+
+                    # ------------------------------------------------------------
+                    # 3. Consensus
+                    # ------------------------------------------------------------
 
                     consensus_result = self.consensus.combine(
                         oracle_result,
                         groq_result,
-                        llama_result,
+                        qwen_result,
                     )
 
                     fused_result = self.fusion.fuse(

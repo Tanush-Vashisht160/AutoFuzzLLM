@@ -1,0 +1,20 @@
+from .injection_patterns import INJECTION_PATTERNS
+from .jailbreak_patterns import JAILBREAK_PATTERNS
+from .leakage_patterns import LEAKAGE_PATTERNS
+from .override_patterns import OVERRIDE_PATTERNS
+from .exfiltration_patterns import EXFILTRATION_PATTERNS
+from .credential_patterns import CREDENTIAL_PATTERNS
+from .tool_patterns import TOOL_PATTERNS
+
+
+ALL_PATTERNS = {
+
+    "Prompt Injection": INJECTION_PATTERNS,
+    "Jailbreak": JAILBREAK_PATTERNS,
+    "Prompt Leakage": LEAKAGE_PATTERNS,
+    "Instruction Override": OVERRIDE_PATTERNS,
+    "Data Exfiltration": EXFILTRATION_PATTERNS,
+    "Credential Leakage": CREDENTIAL_PATTERNS,
+    "Tool Abuse": TOOL_PATTERNS,
+
+}
