@@ -7,7 +7,7 @@ class MCTSNode:
     """
     Represents one node inside the Monte Carlo Tree.
 
-    Every node corresponds to ONE prompt produced during
+    Each node corresponds to one prompt produced during
     the evolutionary fuzzing process.
     """
 
@@ -18,41 +18,35 @@ class MCTSNode:
         parent: Optional["MCTSNode"] = None,
         depth: int = 0,
     ):
-
-        # Prompt stored in this node
         self.prompt = prompt
-
-        # Mutation that created this prompt
         self.mutation = mutation
-
-        # Parent node
         self.parent = parent
 
-        # Children nodes
         self.children: List[MCTSNode] = []
 
-        # Tree depth
         self.depth = depth
 
-        # Number of visits
         self.visits = 0
-
-        # Total accumulated reward
         self.total_reward = 0.0
-
-        # Cached average reward
         self.average_reward = 0.0
 
     def add_child(self, child: "MCTSNode") -> None:
         """
-        Attach a child node.
+        Attach a child node to this node.
         """
-        self.children.append(child)
+
+        if child not in self.children:
+            self.children.append(child)
 
     def update_reward(self, reward: float) -> None:
         """
-        Update statistics after simulation.
+        Update this node's visit count and reward statistics.
         """
+
+        try:
+            reward = float(reward)
+        except (TypeError, ValueError):
+            reward = 0.0
 
         self.visits += 1
         self.total_reward += reward
@@ -68,34 +62,30 @@ class MCTSNode:
 
     def path(self) -> List["MCTSNode"]:
         """
-        Return path from root to this node.
+        Return the path from root to this node.
         """
 
+        result = []
         node = self
 
-        result = []
-
         while node is not None:
-
             result.append(node)
-
             node = node.parent
 
         result.reverse()
 
         return result
-    
+
     def reset(self) -> None:
         """
-        Reset node statistics while preserving the tree structure.
-        Useful when starting a new fuzzing campaign.
+        Reset statistics while preserving tree structure.
         """
+
         self.visits = 0
         self.total_reward = 0.0
         self.average_reward = 0.0
 
-    def __repr__(self):
-
+    def __repr__(self) -> str:
         return (
             f"MCTSNode("
             f"depth={self.depth}, "

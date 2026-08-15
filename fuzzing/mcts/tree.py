@@ -1,61 +1,121 @@
-"""
-tree.py
-
-Complete Monte Carlo Tree implementation for AutoFuzzLLM.
-
-This class stores every prompt generated during fuzzing and
-provides helper methods required by the MCTS algorithm.
-"""
-
 from __future__ import annotations
 
-from typing import List, Optional
+import math
+from typing import Dict, List, Optional
 
 from .mcts_node import MCTSNode
-from .uct import UCT
 
 
 class MCTSTree:
+    """
+    Monte Carlo Tree Search structure used by AutoFuzzLLM.
+
+    The tree maps prompts to MCTS nodes.
+
+    Supported operations:
+
+        add_root_prompt()
+        add_child()
+        backpropagate()
+        top_k_prompts()
+        find_prompt()
+        size()
+        reset()
+    """
 
     def __init__(self):
+        # Prompt -> MCTSNode
+        self.nodes: Dict[str, MCTSNode] = {}
 
-        self.root = MCTSNode(
-            prompt="ROOT",
-            mutation="ROOT",
+        # Root nodes
+        self.roots: List[MCTSNode] = []
+
+    # ============================================================
+    # ROOT MANAGEMENT
+    # ============================================================
+
+    def add_root_prompt(
+        self,
+        prompt: str,
+        mutation: str = "ROOT",
+    ) -> MCTSNode:
+        """
+        Add a prompt as a root node.
+
+        If the prompt already exists, return the existing node.
+        """
+
+        prompt = str(prompt)
+
+        # Avoid duplicate nodes
+        if prompt in self.nodes:
+            return self.nodes[prompt]
+
+        node = MCTSNode(
+            prompt=prompt,
+            mutation=mutation,
             parent=None,
             depth=0,
         )
 
-    ####################################################################
-    # Root
-    ####################################################################
-
-    def add_root_prompt(self, prompt: str):
-
-        node = MCTSNode(
-            prompt=prompt,
-            mutation="SEED",
-            parent=self.root,
-            depth=1,
-        )
-
-        self.root.add_child(node)
+        self.nodes[prompt] = node
+        self.roots.append(node)
 
         return node
 
-    ####################################################################
-    # Expansion
-    ####################################################################
+    # ============================================================
+    # CHILD MANAGEMENT
+    # ============================================================
 
-    def expand(
+    def add_child(
         self,
-        parent: MCTSNode,
-        prompt: str,
-        mutation: str,
-    ):
+        parent_prompt: str,
+        child_prompt: str,
+        mutation: str = "MUTATION",
+    ) -> MCTSNode:
+        """
+        Create a child node under an existing parent prompt.
+
+        This method is required by fuzzing/campaign.py.
+        """
+
+        parent_prompt = str(parent_prompt)
+        child_prompt = str(child_prompt)
+
+        # --------------------------------------------------------
+        # Find parent
+        # --------------------------------------------------------
+
+        parent = self.nodes.get(parent_prompt)
+
+        if parent is None:
+            raise ValueError(
+                f"MCTS parent prompt not found: {parent_prompt[:100]!r}"
+            )
+
+        # --------------------------------------------------------
+        # Existing child/node
+        # --------------------------------------------------------
+
+        if child_prompt in self.nodes:
+            existing = self.nodes[child_prompt]
+
+            # Make sure it is attached to the parent
+            if existing.parent is None:
+                existing.parent = parent
+                existing.depth = parent.depth + 1
+
+            if existing not in parent.children:
+                parent.add_child(existing)
+
+            return existing
+
+        # --------------------------------------------------------
+        # Create child
+        # --------------------------------------------------------
 
         child = MCTSNode(
-            prompt=prompt,
+            prompt=child_prompt,
             mutation=mutation,
             parent=parent,
             depth=parent.depth + 1,
@@ -63,238 +123,218 @@ class MCTSTree:
 
         parent.add_child(child)
 
+        self.nodes[child_prompt] = child
+
         return child
 
-    ####################################################################
-    # DFS Traversal
-    ####################################################################
+    # ============================================================
+    # FIND
+    # ============================================================
 
-    def get_all_nodes(self):
+    def find_prompt(self, prompt: str) -> Optional[MCTSNode]:
+        """
+        Find a node by its prompt.
+        """
 
-        stack = [self.root]
+        return self.nodes.get(str(prompt))
 
-        nodes = []
-
-        while stack:
-
-            node = stack.pop()
-
-            nodes.append(node)
-
-            stack.extend(node.children)
-
-        return nodes
-
-    ####################################################################
-    # Find Prompt
-    ####################################################################
-
-    def find_prompt(
-        self,
-        prompt: str,
-    ) -> Optional[MCTSNode]:
-
-        for node in self.get_all_nodes():
-
-            if node.prompt == prompt:
-
-                return node
-
-        return None
-
-    ####################################################################
-    # Select Node using UCT
-    ####################################################################
-
-    def select_node(self):
-
-        current = self.root
-
-        while current.children:
-
-            current = UCT.best_child(current)
-
-        return current
-
-    ####################################################################
-    # Backpropagation
-    ####################################################################
+    # ============================================================
+    # BACKPROPAGATION
+    # ============================================================
 
     def backpropagate(
         self,
         node: MCTSNode,
         reward: float,
-    ):
+    ) -> None:
+        """
+        Propagate reward from the selected node back to the root.
+        """
 
-        while node is not None:
+        if node is None:
+            return
 
-            node.update_reward(reward)
+        try:
+            reward = float(reward)
+        except (TypeError, ValueError):
+            reward = 0.0
 
-            node = node.parent
+        current = node
 
-    ####################################################################
-    # Statistics
-    ####################################################################
+        while current is not None:
 
-    def total_nodes(self):
+            current.update_reward(reward)
 
-        return len(self.get_all_nodes())
+            current = current.parent
 
-    def total_leaf_nodes(self):
+    # ============================================================
+    # TREE SIZE
+    # ============================================================
 
-        count = 0
+    def size(self) -> int:
+        """
+        Return total number of nodes in the tree.
+        """
 
-        for node in self.get_all_nodes():
+        return len(self.nodes)
 
-            if node.is_leaf:
+    # ============================================================
+    # TOP-K PROMPTS
+    # ============================================================
 
-                count += 1
+    def top_k_prompts(self, k: int = 10) -> List[str]:
+        """
+        Return the top-K prompts based on MCTS statistics.
 
-        return count
+        Ranking priority:
 
-    def max_depth(self):
+        1. Average reward
+        2. Visit count
+        3. Depth
+        """
 
-        depth = 0
-
-        for node in self.get_all_nodes():
-
-            if node.depth > depth:
-
-                depth = node.depth
-
-        return depth
-
-    ####################################################################
-    # Best Node
-    ####################################################################
-
-    def best_node(self):
-
-        nodes = self.get_all_nodes()
-
-        if len(nodes) <= 1:
-
-            return None
-
-        return max(
-
-            nodes[1:],
-
-            key=lambda node: node.average_reward,
-
-        )
-    ####################################################################
-    # Top K Nodes
-    ####################################################################
-
-    def top_k_nodes(
-        self,
-        k: int = 10,
-    ):
-
-        nodes = self.get_all_nodes()
-
-        if len(nodes) <= 1:
+        if k <= 0:
             return []
 
-        ranked = sorted(
+        nodes = list(self.nodes.values())
 
-            nodes[1:],
-
-            key=lambda node: UCT.score(
-
-                max(
-                    node.parent.visits if node.parent else 1,
-                    1
-                ),
-
-                node,
-
+        nodes.sort(
+            key=lambda node: (
+                node.average_reward,
+                node.visits,
+                node.depth,
             ),
-
             reverse=True,
         )
 
-        return ranked[:k]
-    ####################################################################
-    # Top K Prompts
-    ####################################################################
-
-    def top_k_prompts(
-        self,
-        k: int = 10,
-    ):
-
-        nodes = self.top_k_nodes(k)
-
         return [
-
             node.prompt
-
-            for node in nodes
-
+            for node in nodes[:k]
         ]
-    ####################################################################
-    # Print
-    ####################################################################
 
-    def print_tree(
-        self,
-        node=None,
-        indent="",
-    ):
+    # ============================================================
+    # TOP-K NODES
+    # ============================================================
 
-        if node is None:
+    def top_k_nodes(self, k: int = 10) -> List[MCTSNode]:
+        """
+        Return the top-K MCTS nodes.
+        """
 
-            node = self.root
+        if k <= 0:
+            return []
 
-        print(
-            f"{indent}"
-            f"{node.mutation}"
-            f" "
-            f"(Visits={node.visits}, "
-            f"Reward={node.average_reward:.2f})"
+        nodes = list(self.nodes.values())
+
+        nodes.sort(
+            key=lambda node: (
+                node.average_reward,
+                node.visits,
+                node.depth,
+            ),
+            reverse=True,
         )
 
-        for child in node.children:
+        return nodes[:k]
 
-            self.print_tree(
-                child,
-                indent + "    ",
+    # ============================================================
+    # UCT
+    # ============================================================
+
+    @staticmethod
+    def uct_score(
+        node: MCTSNode,
+        parent_visits: int,
+        exploration: float = 1.414,
+    ) -> float:
+        """
+        Calculate the UCT score for a node.
+
+        UCT =
+            average_reward
+            +
+            exploration * sqrt(
+                ln(parent_visits) / node.visits
             )
+        """
 
-            ####################################################################
-    # Find Best Prompt using UCT
-    ####################################################################
+        if node.visits == 0:
+            return float("inf")
 
-    def best_prompt(self):
+        if parent_visits <= 0:
+            return node.average_reward
 
-        node = self.select_node()
+        return (
+            node.average_reward
+            +
+            exploration
+            * math.sqrt(
+                math.log(parent_visits)
+                / node.visits
+            )
+        )
 
-        if node is None:
+    # ============================================================
+    # BEST CHILD
+    # ============================================================
+
+    def best_child(
+        self,
+        node: MCTSNode,
+        exploration: float = 1.414,
+    ) -> Optional[MCTSNode]:
+        """
+        Select the best child according to UCT.
+        """
+
+        if node is None or not node.children:
             return None
 
-        if node.prompt == "ROOT":
-            return None
+        parent_visits = max(node.visits, 1)
 
-        return node.prompt
-    
-    ####################################################################
-    # Find Node by Prompt
-    ####################################################################
+        return max(
+            node.children,
+            key=lambda child: self.uct_score(
+                child,
+                parent_visits,
+                exploration,
+            ),
+        )
 
-    def get_node(self, prompt: str):
+    # ============================================================
+    # RESET
+    # ============================================================
 
-        return self.find_prompt(prompt)
-    
-    def average_branch_depth(self):
+    def reset(self) -> None:
+        """
+        Reset all node statistics while preserving the tree.
+        """
 
-        nodes = self.get_all_nodes()
+        for node in self.nodes.values():
+            node.reset()
 
-        if len(nodes) <= 1:
-            return 0
+    # ============================================================
+    # CLEAR
+    # ============================================================
 
-        return sum(
-            node.depth
-            for node in nodes
-        ) / len(nodes)
+    def clear(self) -> None:
+        """
+        Completely clear the tree.
+        """
+
+        self.nodes.clear()
+        self.roots.clear()
+
+    # ============================================================
+    # REPRESENTATION
+    # ============================================================
+
+    def __len__(self) -> int:
+        return len(self.nodes)
+
+    def __repr__(self) -> str:
+        return (
+            f"MCTSTree("
+            f"nodes={len(self.nodes)}, "
+            f"roots={len(self.roots)})"
+        )

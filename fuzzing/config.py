@@ -1,0 +1,9 @@
+# Maximum text sent to judge models
+
+MAX_JUDGE_PROMPT = 2000
+
+MAX_JUDGE_RESPONSE = 4000
+
+ORACLE_JUDGE_THRESHOLD = 5
+
+ROLLOUT_DEPTH = 1

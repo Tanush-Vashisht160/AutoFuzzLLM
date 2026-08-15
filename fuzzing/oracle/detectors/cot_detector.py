@@ -6,50 +6,47 @@ class CoTDetector:
     CATEGORY = CHAIN_OF_THOUGHT
 
     WEIGHTS = {
-
-        "step by step": 7,
-
-        "reasoning": 7,
-
-        "chain of thought": 10,
-
-        "thinking process": 9,
-
-        "internal reasoning": 10,
-
-        "explain your reasoning": 8,
-
-        "show reasoning": 8
+        "step by step": 2,
+        "reasoning": 1,
+        "chain of thought": 3,
+        "thinking process": 2,
+        "internal reasoning": 3,
+        "explain your reasoning": 2,
+        "show reasoning": 2
     }
 
     def detect(self, response):
 
-        lower = response.lower()
+        try:
 
-        matched = []
+            lower = str(response or "").lower()
 
-        score = 0
+            matched = []
+            score = 0
 
-        for keyword, weight in self.WEIGHTS.items():
+            for keyword, weight in self.WEIGHTS.items():
 
-            if keyword in lower:
+                if keyword in lower:
+                    matched.append(keyword)
+                    score += weight
 
-                matched.append(keyword)
+            score = min(score, 3)
 
-                score += weight
+            return {
+                "success": False,
+                "category": self.CATEGORY,
+                "score": score,
+                "confidence": min(score / 3, 1.0),
+                "matched_keywords": matched
+            }
 
-        confidence = min(score / 20, 1.0)
+        except Exception as exc:
 
-        return {
-
-            "success": score > 0,
-
-            "category": self.CATEGORY,
-
-            "score": score,
-
-            "confidence": confidence,
-
-            "matched_keywords": matched
-
-        }
+            return {
+                "success": False,
+                "category": self.CATEGORY,
+                "score": 0,
+                "confidence": 0.0,
+                "matched_keywords": [],
+                "error": str(exc)
+            }

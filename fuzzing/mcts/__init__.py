@@ -1,7 +1,11 @@
 """
-Monte Carlo Tree Search package.
+Monte Carlo Tree Search package for AutoFuzzLLM.
 """
 
 from .mcts_node import MCTSNode
 from .tree import MCTSTree
-from .uct import UCT
+
+__all__ = [
+    "MCTSNode",
+    "MCTSTree",
+]

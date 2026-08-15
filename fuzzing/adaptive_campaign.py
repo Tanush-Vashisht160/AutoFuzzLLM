@@ -4,7 +4,7 @@ from fuzzing.executor import FuzzExecutor
 from fuzzing.mutations.ai_mutator import AIMutator
 from fuzzing.seed_pool.seed_pool import SeedPool
 from fuzzing.oracle.oracle import Oracle
-
+from fuzzing.oracle.qwen_judge import QwenJudge
 
 class AdaptiveCampaign:
     """
