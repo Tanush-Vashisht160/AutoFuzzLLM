@@ -1,4 +1,19 @@
-.venv/
-.env
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+.venv/
+
+# Environment / secrets
+.env
+.env.*
+
+# Generated campaign artifacts
+checkpoints/
+reports/history/
+campaign_report.pdf
+
+# Generated reports
+reports/*.pdf
+
+# Local logs
+*.log
