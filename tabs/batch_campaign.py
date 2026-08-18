@@ -2,7 +2,7 @@ import time
 import pandas as pd
 import streamlit as st
 from datetime import datetime
-from fuzzing.campaign import FuzzCampaign
+from fuzzing.campaign import MCTS_TOP_K, FuzzCampaign
 
 # UI Component Imports
 from ui.charts import show_campaign_charts
@@ -18,7 +18,6 @@ from analysis.research_summary import ResearchSummaryGenerator
 from analysis.lvi import LVI
 from ui.multi_model_dashboard import show_multi_model_dashboard
 from ui.lvi_dashboard import show_lvi_dashboard
-
 
 def render_batch_campaign_tab(prompt_data, engines):
     """Renders configuration layouts and coordinates back-end fuzzing pipeline routines."""
@@ -216,11 +215,21 @@ def render_batch_campaign_tab(prompt_data, engines):
             else 1
         )
 
+        first_generation_tests = estimated_initial_seeds * mutations
+
+        later_generation_tests = (
+            max(generations - 1, 0)
+            * min(MCTS_TOP_K, max(estimated_initial_seeds, 1))
+            * mutations
+        )
+
+        tests_per_model = (
+            first_generation_tests
+            + later_generation_tests
+        )
+
         total_tests = max(
-            len(providers)
-            * estimated_initial_seeds
-            * generations
-            * mutations,
+            len(providers) * tests_per_model,
             1
         )
 
@@ -280,7 +289,6 @@ def render_batch_campaign_tab(prompt_data, engines):
                 st.success(f"✅ {provider} completed successfully.")
 
             except Exception as e:
-                failed_tests += generations * mutations
                 failed_models.append(provider)
                 import traceback
                 st.error(e)
@@ -335,7 +343,7 @@ def render_batch_campaign_tab(prompt_data, engines):
 
         attack_summary = {}  
         executed_tests = len(results)
-        failed_tests = planned_tests - executed_tests
+        failed_tests = max(planned_tests - executed_tests, 0)
         total = planned_tests
         safe, warning, critical = 0, 0, 0
         scores, table = [], []
@@ -614,7 +622,7 @@ def render_batch_campaign_tab(prompt_data, engines):
         m1, m2, m3, m4 = st.columns(4)
 
         m1.metric(
-            label="Planned",
+            label="Estimated",
             value=summary["tests"],
             help="""
         Total number of tests scheduled during the campaign.

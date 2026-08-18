@@ -12,69 +12,174 @@ class GraphExplainer:
         provider="Groq"
     ):
 
-        if dataframe.empty:
-            return "No data available."
+        if dataframe is None or dataframe.empty:
+            return "No data available for this chart."
 
         llm = LLMRouter(provider)
 
-        data = dataframe.to_dict(
-            orient="records"
-        )
+        # ---------------------------------------------------------
+        # Keep only the columns that matter for each chart
+        # ---------------------------------------------------------
 
-        # Select specialized analysis instructions based on the chart type
-        if chart_name == "Radar Chart":
-            specific_instructions = (
-                "Compare the security robustness of the models. "
-                "Explain strengths and weaknesses. Discuss trade-offs."
-            )
-        elif chart_name == "Bubble Plot":
-            specific_instructions = (
-                "Explain the relationship between response time, risk score, and response length. "
-                "Mention any clustering or outliers."
-            )
-        elif chart_name == "Attack Success Matrix":
-            specific_instructions = (
-                "Identify which attack categories are most successful against which models. "
-                "Explain trends and defensive implications."
-            )
-        elif chart_name == "Final Severity Distribution":
-            specific_instructions = (
-                "Describe the distribution of Safe, Warning, High, and Critical responses. "
-                "Interpret what this says about the tested model(s)."
-            )
+        if chart_name == "Final Severity Distribution":
+
+            columns = [
+                col for col in [
+                    "Provider",
+                    "Severity",
+                    "Count"
+                ]
+                if col in dataframe.columns
+            ]
+
+            data = dataframe[columns].to_dict(orient="records")
+
+            instructions = """
+Analyze the severity counts only.
+
+State:
+1. Which severity level dominates.
+2. The total number of tests if it can be calculated.
+3. Whether Critical or Warning results exist.
+4. One short security conclusion based strictly on the data.
+
+Do NOT claim that the model is robust merely because no attacks were observed.
+"""
+
         elif chart_name == "Attack Category Distribution":
-            specific_instructions = (
-                "Explain which attack types dominate. "
-                "Discuss what this reveals about the mutation strategy."
-            )
+
+            columns = [
+                col for col in [
+                    "Attack",
+                    "Provider",
+                    "Count"
+                ]
+                if col in dataframe.columns
+            ]
+
+            data = dataframe[columns].to_dict(orient="records")
+
+            instructions = """
+Analyze the attack category counts only.
+
+State:
+1. The most frequent attack category.
+2. The least frequent category if clear.
+3. How many categories were tested.
+4. One short observation about the distribution.
+
+Do NOT claim that the model is vulnerable or robust unless the data directly supports that conclusion.
+"""
+
         elif chart_name == "Evolution Graph":
-            specific_instructions = (
-                "Describe how prompts evolved across generations. "
-                "Highlight successful mutation operators and convergence."
-            )
+
+            columns = [
+                col for col in [
+                    "Operator",
+                    "Generation",
+                    "Fitness",
+                    "Visits",
+                    "Reward"
+                ]
+                if col in dataframe.columns
+            ]
+
+            data = dataframe[columns].to_dict(orient="records")
+
+            instructions = """
+Analyze the evolution data only.
+
+State:
+1. The starting generation/fitness if available.
+2. The highest fitness observed.
+3. Which mutation/operator produced the highest fitness if available.
+4. Whether fitness generally increased, decreased, or fluctuated.
+
+Do NOT discuss vulnerabilities, attacks, or model robustness unless the supplied data directly contains evidence for it.
+"""
+
+        elif chart_name == "Radar Chart":
+
+            data = dataframe.to_dict(orient="records")
+
+            instructions = """
+Briefly compare the models using the supplied metrics.
+Mention the strongest and weakest visible dimensions.
+Do not invent metrics or security conclusions.
+"""
+
+        elif chart_name == "Bubble Plot":
+
+            data = dataframe.to_dict(orient="records")
+
+            instructions = """
+Briefly describe the relationship between response time,
+risk score, and response length.
+Mention only visible trends or outliers.
+Do not invent explanations.
+"""
+
+        elif chart_name == "Attack Success Matrix":
+
+            data = dataframe.to_dict(orient="records")
+
+            instructions = """
+Identify the attack categories with the highest and lowest
+success values and the affected models.
+Keep the explanation strictly data-based.
+"""
+
         else:
-            specific_instructions = "Explain the visualization."
 
-        # Re-engineered core prompt with explicit formatting guardrails
-        prompt = f"""You are an AI cybersecurity researcher analyzing telemetry from an LLM fuzzing framework.
+            data = dataframe.to_dict(orient="records")
 
-Chart Name: {chart_name}
+            instructions = """
+Briefly describe the main pattern visible in the supplied data.
+Do not make unsupported security claims.
+"""
 
-Chart Data:
-{json.dumps(data, indent=2)}
+        # ---------------------------------------------------------
+        # Short, strict LLM prompt
+        # ---------------------------------------------------------
 
-Task:
-Analyze the data above and provide a comprehensive chart explanation.
+        prompt = f"""
+You are analyzing one chart from an LLM security fuzzing dashboard.
 
-Your analysis must address these four areas:
-1. What this graph shows.
-2. Important observations ({specific_instructions}).
-3. Security implications.
-4. Overall conclusion.
+Chart: {chart_name}
 
-Formatting Constraints:
-- Write professionally and objectively.
-- Use continuous paragraph prose only. DO NOT use bullet points, numbered lists, or markdown lists.
-- Strict length constraint: Maximum 180 words. Go straight to the analysis; do not include conversational introductions or transitions."""
+Data:
+{json.dumps(data, indent=2, default=str)}
 
-        return llm.generate(prompt)
+Instructions:
+{instructions}
+
+OUTPUT RULES:
+- Maximum 70 words.
+- Exactly ONE paragraph.
+- No bullet points.
+- No numbered lists.
+- No headings.
+- No markdown.
+- No generic recommendations.
+- No phrases such as "further testing is necessary".
+- Do not repeat the chart title.
+- Use ONLY the supplied data.
+- If the data is insufficient for a claim, do not make that claim.
+- Be precise and concise.
+"""
+
+        try:
+            response = llm.generate(prompt)
+
+            if isinstance(response, dict):
+                response = response.get(
+                    "response",
+                    response.get("text", "")
+                )
+
+            response = str(response).strip()
+
+            return response
+
+        except Exception as e:
+            return f"Unable to generate chart interpretation: {e}"

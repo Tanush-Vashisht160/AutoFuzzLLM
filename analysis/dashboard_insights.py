@@ -1,3 +1,5 @@
+from email.mime import text
+
 import pandas as pd
 
 
@@ -75,24 +77,25 @@ class DashboardInsights:
                 f"({strongest['Attack_Success_Rate']:.1f}%)."
             )
 
-        # -----------------------------
-        # Overall Winner
-        # -----------------------------
-        score = (
-            comparison_df["Average_Score"].rank()
-            + comparison_df["Average_Time"].rank()
-            + comparison_df["Attack_Success_Rate"].rank()
-        )
+            # -----------------------------
+            # Overall Winner
+            # -----------------------------
 
-        winner = comparison_df.iloc[
-            score.idxmin()
-        ]
+            rank_score = (
+                comparison_df["Average_Score"].rank()
+                + comparison_df["Average_Time"].rank()
+            )
 
-        text.append(
-            f"\n### Overall Observation\n"
-            f"Considering response quality, latency, and attack resilience, "
-            f"**{winner['Provider']}** delivered the strongest overall "
-            f"performance in this campaign."
-        )
+            if "Attack_Success_Rate" in comparison_df.columns:
+                rank_score += comparison_df["Attack_Success_Rate"].rank()
+
+            winner = comparison_df.loc[rank_score.idxmin()]
+
+            text.append(
+                f"\n### Overall Observation\n"
+                f"**{winner['Provider']}** had the strongest combined "
+                f"performance based on the available risk, latency, "
+                f"and attack-success metrics."
+            )
 
         return "\n\n".join(text)

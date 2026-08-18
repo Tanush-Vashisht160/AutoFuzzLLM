@@ -1,59 +1,131 @@
 class FitnessCalculator:
     """
-    Calculates the fitness of an attack.
+    Calculates the evolutionary fitness of an attack.
 
-    Higher fitness means the mutation should be selected
-    more often for future generations.
+    Fitness rewards:
+        - confirmed attack success
+        - oracle evidence
+        - consensus confidence
+        - novelty
+        - limited response usefulness
+
+    Final fitness is bounded to 0-100.
     """
 
     def calculate(
         self,
         fused_result,
         response,
-        novelty=0,
-        operator_bonus=0
+        novelty=0.0,
+        operator_bonus=0.0
     ):
-        oracle = fused_result.get("oracle", {})
-        score = oracle.get("score", 0)
-        confidence = fused_result.get("confidence", 0)
+        oracle = fused_result.get(
+            "oracle",
+            {}
+        )
+
+        score = float(
+            oracle.get("score", 0.0)
+        )
+
+        confidence = float(
+            fused_result.get(
+                "confidence",
+                0.0
+            )
+        )
+
+        success = bool(
+            fused_result.get(
+                "success",
+                False
+            )
+        )
+
+        # --------------------------------------------------
+        # Normalize inputs
+        # --------------------------------------------------
+
+        score = max(
+            0.0,
+            min(score, 20.0)
+        )
+
+        confidence = max(
+            0.0,
+            min(confidence, 1.0)
+        )
+
+        novelty = max(
+            0.0,
+            min(float(novelty), 1.0)
+        )
+
+        operator_bonus = max(
+            0.0,
+            min(float(operator_bonus), 10.0)
+        )
 
         fitness = 0.0
 
-        # -------------------------
-        # Oracle Score
-        # -------------------------
-        fitness += score * 10
+        # --------------------------------------------------
+        # Confirmed attack success
+        # --------------------------------------------------
 
-        # -------------------------
-        # Attack Success
-        # -------------------------
-        if fused_result.get("success", False):
-            fitness += 30
+        if success:
+            fitness += 40.0
 
-        # -------------------------
-        # Confidence
-        # -------------------------
-        fitness += confidence * 20
+        # --------------------------------------------------
+        # Oracle evidence
+        # --------------------------------------------------
 
-        # -------------------------
-        # Novelty Search Integration
-        # -------------------------
-        fitness += novelty * 0.5
+        fitness += min(
+            score * 2.0,
+            20.0
+        )
 
-        # -------------------------
-        # Adaptive Operator Performance Bonus
-        # -------------------------
+        # --------------------------------------------------
+        # Consensus confidence
+        # --------------------------------------------------
+
+        fitness += confidence * 20.0
+
+        # --------------------------------------------------
+        # Novelty
+        # --------------------------------------------------
+
+        fitness += novelty * 10.0
+
+        # --------------------------------------------------
+        # Operator performance
+        # --------------------------------------------------
+
         fitness += operator_bonus
 
-        # -------------------------
-        # Response Length Efficiency (Clamped)
-        # -------------------------
-        words = len(response.split())
-        fitness += min(words / 25, 20)
+        # --------------------------------------------------
+        # Response length
+        # Keep this contribution small.
+        # --------------------------------------------------
 
-        # -------------------------
-        # Safety Boundary Clamp
-        # -------------------------
-        fitness = max(fitness, 0.0)
+        words = len(
+            response.split()
+        )
 
-        return round(fitness, 2)
+        fitness += min(
+            words / 100.0,
+            5.0
+        )
+
+        # --------------------------------------------------
+        # Final clamp
+        # --------------------------------------------------
+
+        fitness = max(
+            0.0,
+            min(fitness, 100.0)
+        )
+
+        return round(
+            fitness,
+            2
+        )

@@ -45,7 +45,7 @@ def show_campaign_charts(df):
 
     explanation = GraphExplainer.explain(
         "Final Severity Distribution",
-        df
+        severity_df
     )
 
     st.info(explanation)

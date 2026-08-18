@@ -1,5 +1,6 @@
 import streamlit as st
 
+
 def build_tree(seed, level=0):
 
     prefix = "    " * level + "├── "
@@ -18,19 +19,6 @@ def build_tree(seed, level=0):
     for child in seed.children:
         build_tree(child, level + 1)
 
-
-def show_evolution_tree(seed_pool):
-
-    st.subheader("🌳 Evolution Tree")
-
-    roots = [
-        seed
-        for seed in seed_pool.get_all()
-        if seed.parent is None
-    ]
-
-    for root in roots:
-        build_tree(root)
 
 def show_evolution_tree(seed_pool):
 
