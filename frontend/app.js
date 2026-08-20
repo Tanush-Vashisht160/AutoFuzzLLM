@@ -1,30 +1,19 @@
 /* ============================================================
-   AUTOFUZZLLM FRONTEND CONTROLLER
-
-   Responsibilities:
-   - Sidebar navigation
-   - Sliders
-   - Seed configuration
-   - Campaign UI
-   - Initial zero state
-   - Campaign API communication
-   - Metrics rendering
-   - Model comparison rendering
-   - Live background animation state
+   AUTOFUZZLLM — FRONTEND CONTROLLER
 ============================================================ */
 
 "use strict";
 
 
 /* ============================================================
-   APPLICATION STATE
+   STATE
 ============================================================ */
 
 const AppState = {
 
     running: false,
 
-    campaignStartedAt: null,
+    startedAt: null,
 
     timer: null,
 
@@ -62,28 +51,12 @@ const AppState = {
 
 
 /* ============================================================
-   DOM HELPER
+   HELPERS
 ============================================================ */
 
-function $(id) {
+const $ = (id) =>
+    document.getElementById(id);
 
-    const element = document.getElementById(id);
-
-    if (!element) {
-
-        console.warn(
-            `[AutoFuzzLLM] Element not found: ${id}`
-        );
-
-    }
-
-    return element;
-}
-
-
-/* ============================================================
-   SAFE NUMBER
-============================================================ */
 
 function safeNumber(value, fallback = 0) {
 
@@ -95,57 +68,113 @@ function safeNumber(value, fallback = 0) {
 }
 
 
-/* ============================================================
-   FORMAT NUMBER
-============================================================ */
-
 function formatNumber(value, decimals = 1) {
 
     const number = safeNumber(value);
 
-    return number.toFixed(decimals)
+    return number
+        .toFixed(decimals)
         .replace(/\.0+$/, "");
 }
 
 
 /* ============================================================
-   INITIALIZATION
+   INITIALIZE
 ============================================================ */
 
 document.addEventListener(
     "DOMContentLoaded",
-    initializeApplication
+    initialize
 );
 
 
-function initializeApplication() {
-
-    console.log(
-        "[AutoFuzzLLM] Frontend initialized."
-    );
+function initialize() {
 
     setupNavigation();
+
+    setupClock();
+
+    setupCursor();
 
     setupSliders();
 
     setupSeedSource();
 
-    setupCampaignButton();
+    setupProviders();
 
-    setupChat();
+    setupLaunchButton();
 
-    /*
-     * IMPORTANT:
-     * Start with ZERO values.
-     * We do NOT put fake previous campaign numbers
-     * into the interface.
-     */
     resetDashboard();
 
-    /*
-     * Build model area as empty initially.
-     */
-    renderModels([]);
+    console.log(
+        "[AutoFuzzLLM] Security console initialized."
+    );
+}
+
+
+/* ============================================================
+   CLOCK
+============================================================ */
+
+function setupClock() {
+
+    const clock = $("clock");
+
+    if (!clock) {
+        return;
+    }
+
+
+    function updateClock() {
+
+        const now = new Date();
+
+        clock.textContent =
+            now.toLocaleTimeString(
+                [],
+                {
+                    hour12: false
+                }
+            );
+
+    }
+
+
+    updateClock();
+
+    setInterval(
+        updateClock,
+        1000
+    );
+}
+
+
+/* ============================================================
+   CURSOR GLOW
+============================================================ */
+
+function setupCursor() {
+
+    const glow =
+        $("cursor-glow");
+
+    if (!glow) {
+        return;
+    }
+
+
+    document.addEventListener(
+        "mousemove",
+        event => {
+
+            glow.style.left =
+                `${event.clientX}px`;
+
+            glow.style.top =
+                `${event.clientY}px`;
+
+        }
+    );
 
 }
 
@@ -156,28 +185,25 @@ function initializeApplication() {
 
 function setupNavigation() {
 
-    const navigationItems =
+    const items =
         document.querySelectorAll(
             ".nav-item"
         );
 
-    navigationItems.forEach(
-        (button) => {
 
-            button.addEventListener(
+    items.forEach(
+        item => {
+
+            item.addEventListener(
                 "click",
                 () => {
 
                     const section =
-                        button.dataset.section;
+                        item.dataset.section;
 
-                    if (!section) {
-
-                        return;
-
-                    }
-
-                    showSection(section);
+                    showSection(
+                        section
+                    );
 
                 }
             );
@@ -190,24 +216,37 @@ function setupNavigation() {
 
 function showSection(section) {
 
-    const sections =
-        document.querySelectorAll(
-            ".page-section"
+    document
+        .querySelectorAll(".page-section")
+        .forEach(
+            element => {
+
+                element.classList.remove(
+                    "active-section"
+                );
+
+            }
         );
 
-    sections.forEach(
-        (item) => {
 
-            item.classList.remove(
-                "active-section"
-            );
+    document
+        .querySelectorAll(".nav-item")
+        .forEach(
+            element => {
 
-        }
-    );
+                element.classList.toggle(
+                    "active",
+                    element.dataset.section
+                    === section
+                );
+
+            }
+        );
 
 
     const target =
         $(`${section}-section`);
+
 
     if (target) {
 
@@ -218,39 +257,13 @@ function showSection(section) {
     }
 
 
-    const navigationItems =
-        document.querySelectorAll(
-            ".nav-item"
-        );
-
-    navigationItems.forEach(
-        (button) => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.section === section
-            );
-
-        }
-    );
-
-
-    const title = $("page-title");
-
-    if (!title) {
-
-        return;
-
-    }
-
-
     const titles = {
 
         campaign:
             "Evolutionary Campaign",
 
         live:
-            "Conversation Fuzzer",
+            "Live Test",
 
         analytics:
             "Security Analytics",
@@ -261,9 +274,17 @@ function showSection(section) {
     };
 
 
-    title.textContent =
-        titles[section]
-        || "AutoFuzzLLM";
+    const title =
+        $("page-title");
+
+
+    if (title) {
+
+        title.textContent =
+            titles[section]
+            || "AutoFuzzLLM";
+
+    }
 
 }
 
@@ -285,6 +306,11 @@ function setupSliders() {
     );
 
     bindSlider(
+        "initial-seed-count",
+        "initial-seed-value"
+    );
+
+    bindSlider(
         "seed-pool-size",
         "pool-value"
     );
@@ -302,23 +328,24 @@ function bindSlider(
     outputId
 ) {
 
-    const input = $(inputId);
+    const input =
+        $(inputId);
 
-    const output = $(outputId);
+    const output =
+        $(outputId);
+
 
     if (!input || !output) {
-
         return;
-
     }
 
 
-    const update = () => {
+    function update() {
 
         output.textContent =
             input.value;
 
-    };
+    }
 
 
     input.addEventListener(
@@ -326,7 +353,59 @@ function bindSlider(
         update
     );
 
+
     update();
+
+}
+
+
+/* ============================================================
+   PROVIDERS
+============================================================ */
+
+function setupProviders() {
+
+    const providers =
+        document.querySelectorAll(
+            'input[name="provider"]'
+        );
+
+
+    providers.forEach(
+        input => {
+
+            input.addEventListener(
+                "change",
+                updateProviderCount
+            );
+
+        }
+    );
+
+
+    updateProviderCount();
+
+}
+
+
+function updateProviderCount() {
+
+    const count =
+        document.querySelectorAll(
+            'input[name="provider"]:checked'
+        ).length;
+
+
+    const element =
+        $("provider-count");
+
+
+    if (element) {
+
+        element.textContent =
+            count;
+
+    }
 
 }
 
@@ -346,6 +425,9 @@ function setupSeedSource() {
     const promptGroup =
         $("custom-prompt-group");
 
+    const initialSeedGroup =
+        $("initial-seed-group");
+
 
     if (!select) {
 
@@ -359,25 +441,66 @@ function setupSeedSource() {
         const source =
             select.value;
 
-        const custom =
+
+        const isBuiltIn =
+            source === "Built-in Dataset";
+
+        const isCustom =
             source === "Custom Prompt";
 
+        const isHybrid =
+            source === "Hybrid Mode";
+
+
+        /*
+         * DATASET
+         *
+         * Built-in  -> visible
+         * Custom    -> hidden
+         * Hybrid    -> visible
+         */
 
         if (datasetGroup) {
 
             datasetGroup.classList.toggle(
                 "hidden",
-                custom
+                isCustom
             );
 
         }
 
 
+        /*
+         * CUSTOM PROMPT
+         *
+         * Built-in  -> hidden
+         * Custom    -> visible
+         * Hybrid    -> visible
+         */
+
         if (promptGroup) {
 
             promptGroup.classList.toggle(
                 "hidden",
-                !custom
+                isBuiltIn
+            );
+
+        }
+
+
+        /*
+         * INITIAL SEED COUNT
+         *
+         * Built-in  -> visible
+         * Custom    -> hidden
+         * Hybrid    -> visible
+         */
+
+        if (initialSeedGroup) {
+
+            initialSeedGroup.classList.toggle(
+                "hidden",
+                isCustom
             );
 
         }
@@ -390,37 +513,14 @@ function setupSeedSource() {
         update
     );
 
+
     update();
 
 }
 
 
 /* ============================================================
-   CAMPAIGN BUTTON
-============================================================ */
-
-function setupCampaignButton() {
-
-    const button =
-        $("launch-button");
-
-    if (!button) {
-
-        return;
-
-    }
-
-
-    button.addEventListener(
-        "click",
-        launchCampaign
-    );
-
-}
-
-
-/* ============================================================
-   COLLECT CONFIGURATION
+   CONFIGURATION
 ============================================================ */
 
 function collectConfiguration() {
@@ -440,14 +540,14 @@ function collectConfiguration() {
         || "Built-in Dataset";
 
 
-    const configuration = {
+    return {
 
         providers,
 
         seed_source:
             seedSource,
 
-        dataset:
+        dataset_name:
             $("dataset")?.value
             || null,
 
@@ -455,36 +555,42 @@ function collectConfiguration() {
             $("custom-prompt")?.value
             || "",
 
+        initial_seed_count:
+            safeNumber(
+                $("initial-seed-count")?.value
+            ),
+
         mutations:
             safeNumber(
-                $("mutations")?.value
+                $("mutations")?.value,
+                5
             ),
 
         generations:
             safeNumber(
-                $("generations")?.value
+                $("generations")?.value,
+                3
             ),
 
         seed_pool_size:
             safeNumber(
-                $("seed-pool-size")?.value
+                $("seed-pool-size")?.value,
+                100
             ),
 
         fitness_threshold:
             safeNumber(
-                $("fitness-threshold")?.value
+                $("fitness-threshold")?.value,
+                30
             )
 
     };
-
-
-    return configuration;
 
 }
 
 
 /* ============================================================
-   CAMPAIGN VALIDATION
+   VALIDATION
 ============================================================ */
 
 function validateConfiguration(
@@ -492,35 +598,58 @@ function validateConfiguration(
 ) {
 
     if (
-        !configuration.providers ||
-        configuration.providers.length === 0
+        !configuration.providers.length
     ) {
 
-        alert(
-            "Please select at least one LLM provider."
+        showToast(
+            "Select at least one LLM provider.",
+            "warning"
         );
 
         return false;
-
     }
 
 
     if (
-        configuration.seed_source ===
-        "Custom Prompt" &&
+        configuration.seed_source
+        === "Custom Prompt"
+        &&
         !configuration.custom_prompt.trim()
     ) {
 
-        alert(
-            "Please enter a custom seed prompt."
+        showToast(
+            "Enter a custom seed prompt.",
+            "warning"
         );
 
         return false;
-
     }
 
 
     return true;
+
+}
+
+
+/* ============================================================
+   LAUNCH BUTTON
+============================================================ */
+
+function setupLaunchButton() {
+
+    const button =
+        $("launch-button");
+
+
+    if (!button) {
+        return;
+    }
+
+
+    button.addEventListener(
+        "click",
+        launchCampaign
+    );
 
 }
 
@@ -532,9 +661,7 @@ function validateConfiguration(
 async function launchCampaign() {
 
     if (AppState.running) {
-
         return;
-
     }
 
 
@@ -553,23 +680,19 @@ async function launchCampaign() {
     }
 
 
-    setCampaignRunning(true);
-
     resetDashboard();
 
+    setCampaignRunning(
+        true
+    );
+
+
     updateExecutionStatus(
-        "Initializing Threat Assessment Matrix..."
+        "Preparing fuzzing campaign..."
     );
 
 
     try {
-
-        /*
-         * The frontend talks to FastAPI.
-         *
-         * IMPORTANT:
-         * This endpoint must exist in server.py.
-         */
 
         const response =
             await fetch(
@@ -596,35 +719,48 @@ async function launchCampaign() {
 
         if (!response.ok) {
 
+            let message =
+                `HTTP ${response.status}`;
+
+            try {
+
+                const errorData =
+                    await response.json();
+
+                message =
+                    errorData.detail
+                    || errorData.message
+                    || message;
+
+            }
+            catch (_) {
+                // Ignore JSON parsing failure.
+            }
+
+
             throw new Error(
-                `Campaign API returned HTTP ${response.status}`
+                message
             );
 
         }
 
 
-        const result =
+        updateExecutionStatus(
+            "Processing campaign results..."
+        );
+
+
+        const payload =
             await response.json();
 
 
-        /*
-         * The backend may return:
-         *
-         * {
-         *   success: true,
-         *   data: {...}
-         * }
-         *
-         * OR directly {...}
-         */
-
-        const campaignData =
-            result.data
-            || result;
+        const result =
+            payload.data
+            || payload;
 
 
         applyCampaignResult(
-            campaignData
+            result
         );
 
 
@@ -633,11 +769,16 @@ async function launchCampaign() {
         );
 
 
+        showToast(
+            "Security campaign completed.",
+            "success"
+        );
+
     }
     catch (error) {
 
         console.error(
-            "[AutoFuzzLLM] Campaign error:",
+            "[AutoFuzzLLM]",
             error
         );
 
@@ -647,17 +788,17 @@ async function launchCampaign() {
         );
 
 
-        /*
-         * Failed API communication should NOT
-         * create fake statistics.
-         */
-
-        setCampaignError();
+        showToast(
+            "Campaign failed. Check the FastAPI terminal.",
+            "error"
+        );
 
     }
     finally {
 
-        setCampaignRunning(false);
+        setCampaignRunning(
+            false
+        );
 
     }
 
@@ -665,7 +806,7 @@ async function launchCampaign() {
 
 
 /* ============================================================
-   CAMPAIGN RUNNING STATE
+   RUNNING STATE
 ============================================================ */
 
 function setCampaignRunning(
@@ -685,27 +826,50 @@ function setCampaignRunning(
         button.disabled =
             running;
 
+
         button.classList.toggle(
             "running",
             running
         );
 
 
-        button.innerHTML =
-            running
-                ? "<span>⏳</span> Campaign Running..."
-                : "<span>🚀</span> Launch Evolutionary Campaign";
+        if (running) {
+
+            button.innerHTML = `
+                <span class="launch-icon">●</span>
+                <span class="launch-text">
+                    Campaign running...
+                </span>
+                <span class="launch-shortcut mono">
+                    PROCESSING
+                </span>
+            `;
+
+        }
+        else {
+
+            button.innerHTML = `
+                <span class="launch-icon">→</span>
+                <span class="launch-text">
+                    Launch security campaign
+                </span>
+                <span class="launch-shortcut mono">
+                    ENTER
+                </span>
+            `;
+
+        }
 
     }
 
 
-    const executionPanel =
+    const panel =
         $("execution-panel");
 
 
-    if (executionPanel) {
+    if (panel) {
 
-        executionPanel.classList.toggle(
+        panel.classList.toggle(
             "hidden",
             !running
         );
@@ -713,17 +877,10 @@ function setCampaignRunning(
     }
 
 
-    document.body.classList.toggle(
-        "campaign-running",
-        running
-    );
-
-
     if (running) {
 
-        AppState.campaignStartedAt =
+        AppState.startedAt =
             Date.now();
-
 
         startTimer();
 
@@ -746,21 +903,18 @@ function startTimer() {
     stopTimer();
 
 
-    const update = () => {
+    function update() {
 
-        if (
-            !AppState.campaignStartedAt
-        ) {
-
+        if (!AppState.startedAt) {
             return;
-
         }
 
 
         const elapsed =
             (
-                Date.now() -
-                AppState.campaignStartedAt
+                Date.now()
+                -
+                AppState.startedAt
             ) / 1000;
 
 
@@ -775,7 +929,7 @@ function startTimer() {
 
         }
 
-    };
+    }
 
 
     update();
@@ -814,29 +968,16 @@ function updateExecutionStatus(
     message
 ) {
 
-    const status =
+    const element =
         $("execution-status");
 
 
-    if (status) {
+    if (element) {
 
-        status.textContent =
+        element.textContent =
             message;
 
     }
-
-}
-
-
-/* ============================================================
-   ERROR STATE
-============================================================ */
-
-function setCampaignError() {
-
-    updateExecutionStatus(
-        "Campaign could not be completed. Check the FastAPI terminal."
-    );
 
 }
 
@@ -853,48 +994,58 @@ function updateProgress(
     const bar =
         $("progress-bar");
 
+    const percent =
+        $("execution-percent");
+
 
     if (!bar) {
-
         return;
-
     }
 
 
-    const total =
-        safeNumber(
-            planned
-        );
-
-
-    const done =
-        safeNumber(
-            completed
-        );
-
-
-    if (total <= 0) {
+    if (
+        !planned
+        ||
+        planned <= 0
+    ) {
 
         bar.style.width =
-            "0%";
+            "8%";
+
+        if (percent) {
+            percent.textContent =
+                "RUNNING";
+        }
 
         return;
 
     }
 
 
-    const percentage =
+    const value =
         Math.min(
             100,
             Math.max(
                 0,
-                (done / total) * 100
+                (
+                    completed
+                    /
+                    planned
+                ) * 100
             )
         );
 
 
     bar.style.width =
-        `${percentage}%`;
+        `${value}%`;
+
+
+    if (percent) {
+
+        percent.textContent =
+            `${Math.round(value)}%`;
+
+    }
 
 }
 
@@ -940,17 +1091,31 @@ function resetDashboard() {
         AppState.data
     );
 
+
+    renderLVI(
+        AppState.data
+    );
+
+
+    renderSeverity(
+        AppState.data
+    );
+
+
+    renderThreatChart(
+        AppState.data
+    );
+
+
     renderAttackDistribution(
         {}
     );
+
 
     renderModels(
         []
     );
 
-    updateLVI(
-        AppState.data
-    );
 
     updateProgress(
         0,
@@ -961,7 +1126,7 @@ function resetDashboard() {
 
 
 /* ============================================================
-   APPLY BACKEND RESULT
+   BACKEND RESULT
 ============================================================ */
 
 function applyCampaignResult(
@@ -969,71 +1134,80 @@ function applyCampaignResult(
 ) {
 
     if (
-        !result ||
+        !result
+        ||
         typeof result !== "object"
     ) {
 
         throw new Error(
-            "Backend returned invalid campaign data."
+            "Invalid campaign response."
         );
 
     }
 
-
-    /*
-     * Supports both backend naming styles.
-     */
 
     const data = {
 
         planned:
             safeNumber(
                 result.planned
-                ?? result.tests
-                ?? result.total_tests
+                ??
+                result.estimated
+                ??
+                result.tests
+                ??
+                result.total_tests
             ),
 
         executed:
             safeNumber(
                 result.executed
-                ?? result.executed_tests
+                ??
+                result.executed_tests
             ),
 
         failed:
             safeNumber(
                 result.failed
-                ?? result.failed_tests
+                ??
+                result.failed_tests
             ),
 
         averageRisk:
             safeNumber(
+                result.average_risk
+                ??
                 result.averageRisk
-                ?? result.average
-                ?? result.average_risk
+                ??
+                result.average
             ),
 
         averageLVI:
             safeNumber(
+                result.average_lvi
+                ??
                 result.averageLVI
-                ?? result.average_lvi
             ),
 
         highestLVI:
             safeNumber(
+                result.highest_lvi
+                ??
                 result.highestLVI
-                ?? result.highest_lvi
             ),
 
         lowestLVI:
             safeNumber(
+                result.lowest_lvi
+                ??
                 result.lowestLVI
-                ?? result.lowest_lvi
             ),
 
         criticalLVI:
             safeNumber(
+                result.critical_lvi
+                ??
                 result.criticalLVI
-                ?? result.critical_lvi
             ),
 
         safe:
@@ -1052,13 +1226,18 @@ function applyCampaignResult(
             ),
 
         attacks:
+            result.attack_distribution
+            ||
             result.attacks
-            || result.attack_summary
-            || {},
+            ||
+            {},
 
         models:
+            result.provider_comparison
+            ||
             result.models
-            || []
+            ||
+            []
 
     };
 
@@ -1072,6 +1251,21 @@ function applyCampaignResult(
     );
 
 
+    renderLVI(
+        data
+    );
+
+
+    renderSeverity(
+        data
+    );
+
+
+    renderThreatChart(
+        data
+    );
+
+
     renderAttackDistribution(
         data.attacks
     );
@@ -1079,11 +1273,6 @@ function applyCampaignResult(
 
     renderModels(
         data.models
-    );
-
-
-    updateLVI(
-        data
     );
 
 
@@ -1103,65 +1292,318 @@ function renderMetrics(
     data
 ) {
 
-    setText(
+    animateValue(
         "planned-tests",
-        formatNumber(data.planned, 0)
+        data.planned
     );
 
-    setText(
+
+    animateValue(
         "executed-tests",
-        formatNumber(data.executed, 0)
+        data.executed
     );
 
-    setText(
+
+    animateValue(
         "failed-tests",
-        formatNumber(data.failed, 0)
+        data.failed
     );
 
-    setText(
+
+    animateValue(
         "average-risk",
-        formatNumber(data.averageRisk, 1)
-    );
-
-    setText(
-        "average-lvi",
-        formatNumber(data.averageLVI, 1)
-    );
-
-    setText(
-        "highest-lvi",
-        formatNumber(data.highestLVI, 1)
-    );
-
-    setText(
-        "lowest-lvi",
-        formatNumber(data.lowestLVI, 1)
-    );
-
-    setText(
-        "critical-lvi",
-        formatNumber(data.criticalLVI, 0)
-    );
-
-    setText(
-        "safe-count",
-        formatNumber(data.safe, 0)
-    );
-
-    setText(
-        "warning-count",
-        formatNumber(data.warning, 0)
-    );
-
-    setText(
-        "critical-count",
-        formatNumber(data.critical, 0)
+        data.averageRisk,
+        1
     );
 
 }
 
 
-function setText(
+/* ============================================================
+   ANIMATED NUMBERS
+============================================================ */
+
+function animateValue(
+    id,
+    target,
+    decimals = 0
+) {
+
+    const element =
+        $(id);
+
+
+    if (!element) {
+        return;
+    }
+
+
+    const start =
+        safeNumber(
+            element.dataset.value,
+            0
+        );
+
+
+    const end =
+        safeNumber(
+            target,
+            0
+        );
+
+
+    element.dataset.value =
+        end;
+
+
+    const duration =
+        600;
+
+
+    const started =
+        performance.now();
+
+
+    function frame(now) {
+
+        const progress =
+            Math.min(
+                1,
+                (
+                    now
+                    -
+                    started
+                )
+                /
+                duration
+            );
+
+
+        const eased =
+            1 -
+            Math.pow(
+                1 - progress,
+                3
+            );
+
+
+        const value =
+            start
+            +
+            (
+                end
+                -
+                start
+            )
+            *
+            eased;
+
+
+        element.textContent =
+            decimals
+                ? value.toFixed(decimals)
+                : Math.round(value);
+
+
+        if (progress < 1) {
+
+            requestAnimationFrame(
+                frame
+            );
+
+        }
+
+    }
+
+
+    requestAnimationFrame(
+        frame
+    );
+
+
+    const metric =
+        element.closest(
+            ".metric"
+        );
+
+
+    if (metric) {
+
+        metric.classList.remove(
+            "animate"
+        );
+
+
+        void metric.offsetWidth;
+
+
+        metric.classList.add(
+            "animate"
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   LVI
+============================================================ */
+
+function renderLVI(
+    data
+) {
+
+    animateValue(
+        "average-lvi",
+        data.averageLVI,
+        1
+    );
+
+
+    animateValue(
+        "highest-lvi",
+        data.highestLVI,
+        1
+    );
+
+
+    animateValue(
+        "lowest-lvi",
+        data.lowestLVI,
+        1
+    );
+
+
+    animateValue(
+        "critical-lvi",
+        data.criticalLVI
+    );
+
+
+    const progress =
+        $("lvi-progress");
+
+
+    if (progress) {
+
+        const value =
+            Math.min(
+                100,
+                Math.max(
+                    0,
+                    data.averageLVI
+                )
+            );
+
+
+        progress.style.width =
+            `${value}%`;
+
+    }
+
+}
+
+
+/* ============================================================
+   SEVERITY
+============================================================ */
+
+function renderSeverity(
+    data
+) {
+
+    animateValue(
+        "safe-count",
+        data.safe
+    );
+
+
+    animateValue(
+        "warning-count",
+        data.warning
+    );
+
+
+    animateValue(
+        "critical-count",
+        data.critical
+    );
+
+}
+
+
+/* ============================================================
+   THREAT CHART
+============================================================ */
+
+function renderThreatChart(
+    data
+) {
+
+    const total =
+        data.safe
+        +
+        data.warning
+        +
+        data.critical;
+
+
+    if (!total) {
+
+        setBar(
+            "safe-bar",
+            0
+        );
+
+        setBar(
+            "warning-bar",
+            0
+        );
+
+        setBar(
+            "critical-bar",
+            0
+        );
+
+        return;
+
+    }
+
+
+    setBar(
+        "safe-bar",
+        (
+            data.safe
+            /
+            total
+        ) * 100
+    );
+
+
+    setBar(
+        "warning-bar",
+        (
+            data.warning
+            /
+            total
+        ) * 100
+    );
+
+
+    setBar(
+        "critical-bar",
+        (
+            data.critical
+            /
+            total
+        ) * 100
+    );
+
+}
+
+
+function setBar(
     id,
     value
 ) {
@@ -1169,12 +1611,14 @@ function setText(
     const element =
         $(id);
 
-    if (element) {
 
-        element.textContent =
-            value;
-
+    if (!element) {
+        return;
     }
+
+
+    element.style.height =
+        `${Math.max(2, value)}%`;
 
 }
 
@@ -1192,233 +1636,25 @@ function renderAttackDistribution(
 
 
     if (!container) {
-
         return;
-
     }
 
 
     const entries =
         Object.entries(
             attacks || {}
+        )
+        .sort(
+            (a,b) => b[1] - a[1]
         );
 
 
-    const defaultCategories = [
-
-        "Prompt Injection",
-
-        "Jailbreak",
-
-        "Prompt Leakage",
-
-        "Policy Violation"
-
-    ];
-
-
-    const values =
-        entries.length > 0
-            ? entries
-            : defaultCategories.map(
-                name => [name, 0]
-            );
-
-
-    container.innerHTML =
-        "";
-
-
-    values.forEach(
-        ([name, value]) => {
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-
-            const label =
-                document.createElement(
-                    "span"
-                );
-
-
-            const count =
-                document.createElement(
-                    "strong"
-                );
-
-
-            label.textContent =
-                name;
-
-
-            count.textContent =
-                formatNumber(
-                    value,
-                    0
-                );
-
-
-            row.appendChild(
-                label
-            );
-
-            row.appendChild(
-                count
-            );
-
-
-            container.appendChild(
-                row
-            );
-
-        }
-    );
-
-}
-
-
-/* ============================================================
-   LVI
-============================================================ */
-
-function updateLVI(
-    data
-) {
-
-    const value =
-        safeNumber(
-            data.averageLVI
-        );
-
-
-    setText(
-        "lvi-main-value",
-        formatNumber(value, 1)
-    );
-
-
-    const status =
-        $("lvi-status");
-
-
-    if (!status) {
-
-        return;
-
-    }
-
-
-    if (
-        data.executed === 0
-    ) {
-
-        status.textContent =
-            "Awaiting campaign";
-
-        return;
-
-    }
-
-
-    if (value >= 80) {
-
-        status.textContent =
-            "Critical vulnerability level";
-
-    }
-    else if (value >= 50) {
-
-        status.textContent =
-            "High vulnerability level";
-
-    }
-    else if (value >= 30) {
-
-        status.textContent =
-            "Moderate vulnerability level";
-
-    }
-    else {
-
-        status.textContent =
-            "Low vulnerability level";
-
-    }
-
-}
-
-
-/* ============================================================
-   MODEL CARDS
-============================================================ */
-
-function renderModels(
-    models
-) {
-
-    const container =
-        $("model-cards");
-
-
-    if (!container) {
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        "";
-
-
-    if (
-        !Array.isArray(models)
-        || models.length === 0
-    ) {
+    if (!entries.length) {
 
         container.innerHTML = `
-
-            <div class="model-card">
-
-                <div class="model-header">
-
-                    <div class="model-avatar">
-                        —
-                    </div>
-
-                    <div>
-
-                        <strong>
-                            No campaign data
-                        </strong>
-
-                        <small>
-                            Run a campaign to compare models
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <div class="model-stats">
-
-                    <div>
-                        <span>Average Risk</span>
-                        <strong>0</strong>
-                    </div>
-
-                    <div>
-                        <span>Critical</span>
-                        <strong>0</strong>
-                    </div>
-
-                </div>
-
+            <div class="empty-state">
+                No campaign data yet.
             </div>
-
         `;
 
         return;
@@ -1426,118 +1662,324 @@ function renderModels(
     }
 
 
-    models.forEach(
-        model => {
-
-            const name =
-                typeof model === "string"
-                    ? model
-                    : model.provider
-                    || model.Provider
-                    || "Unknown";
+    const max =
+        Math.max(
+            ...entries.map(
+                item => safeNumber(item[1])
+            )
+        );
 
 
-            const risk =
-                typeof model === "object"
-                    ? safeNumber(
-                        model.averageRisk
-                        ?? model.Average_Risk
-                        ?? model.average_risk
-                    )
-                    : 0;
+    container.innerHTML =
+        entries
+            .map(
+                ([name,count]) => {
+
+                    const value =
+                        safeNumber(count);
 
 
-            const critical =
-                typeof model === "object"
-                    ? safeNumber(
-                        model.critical
-                        ?? model.Critical
-                    )
-                    : 0;
+                    const width =
+                        max
+                            ? (
+                                value
+                                /
+                                max
+                            ) * 100
+                            : 0;
 
 
-            const type =
-                name === "Phi3 Mini"
-                || name === "Qwen 0.5B"
-                ? "Local Ollama"
-                : "Cloud Model";
+                    return `
+                        <div class="attack-row">
+
+                            <span class="attack-name">
+                                ${escapeHTML(name)}
+                            </span>
+
+                            <div class="attack-right">
+
+                                <div class="attack-bar">
+
+                                    <span
+                                        style="width:${width}%"
+                                    ></span>
+
+                                </div>
+
+                                <span class="attack-count">
+                                    ${value}
+                                </span>
+
+                            </div>
+
+                        </div>
+                    `;
+
+                }
+            )
+            .join("");
+
+}
 
 
-            const avatar =
-                name.charAt(0)
-                    .toUpperCase();
+/* ============================================================
+   MODEL COMPARISON
+============================================================ */
+
+function renderModels(
+    models
+) {
+
+    const container =
+        $("model-comparison");
 
 
-            const card =
-                document.createElement(
-                    "div"
-                );
+    if (!container) {
+        return;
+    }
 
 
-            card.className =
-                "model-card";
+    if (
+        !Array.isArray(models)
+        ||
+        !models.length
+    ) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                Run a campaign to compare model resilience.
+            </div>
+        `;
+
+        return;
+
+    }
 
 
-            card.innerHTML = `
+    container.innerHTML = `
 
-                <div class="model-header">
+        <div class="model-header">
 
-                    <div class="model-avatar">
-                        ${escapeHTML(avatar)}
-                    </div>
+            <span>PROVIDER</span>
+            <span>TESTS</span>
+            <span>AVG RISK</span>
+            <span>AVG LVI</span>
+            <span>CRITICAL</span>
+            <span>WARNING</span>
+            <span>SAFE</span>
 
-                    <div>
+        </div>
 
-                        <strong>
-                            ${escapeHTML(name)}
-                        </strong>
+        ${
+            models
+                .map(
+                    model => `
 
-                        <small>
-                            ${escapeHTML(type)}
-                        </small>
+                        <div class="model-row">
 
-                    </div>
+                            <span class="model-provider">
+                                ${escapeHTML(
+                                    model.provider
+                                    || "Unknown"
+                                )}
+                            </span>
 
-                </div>
+                            <span>
+                                ${safeNumber(
+                                    model.tests
+                                )}
+                            </span>
+
+                            <span>
+                                ${formatNumber(
+                                    model.average_risk,
+                                    1
+                                )}
+                            </span>
+
+                            <span>
+                                ${formatNumber(
+                                    model.average_lvi,
+                                    1
+                                )}
+                            </span>
+
+                            <span class="model-critical">
+                                ${safeNumber(
+                                    model.critical
+                                )}
+                            </span>
+
+                            <span class="model-warning">
+                                ${safeNumber(
+                                    model.warning
+                                )}
+                            </span>
+
+                            <span class="model-safe">
+                                ${safeNumber(
+                                    model.safe
+                                )}
+                            </span>
+
+                        </div>
+
+                    `
+                )
+                .join("")
+        }
+
+    `;
+
+}
 
 
-                <div class="model-stats">
+/* ============================================================
+   TOAST
+============================================================ */
 
-                    <div>
+function showToast(
+    message,
+    type = "info"
+) {
 
-                        <span>
-                            Average Risk
-                        </span>
-
-                        <strong>
-                            ${formatNumber(risk, 1)}
-                        </strong>
-
-                    </div>
-
-
-                    <div>
-
-                        <span>
-                            Critical
-                        </span>
-
-                        <strong>
-                            ${formatNumber(critical, 0)}
-                        </strong>
-
-                    </div>
-
-                </div>
-
-            `;
+    let container =
+        document.getElementById(
+            "toast-container"
+        );
 
 
-            container.appendChild(
-                card
+    if (!container) {
+
+        container =
+            document.createElement(
+                "div"
             );
 
+
+        container.id =
+            "toast-container";
+
+
+        Object.assign(
+            container.style,
+            {
+
+                position: "fixed",
+
+                right: "22px",
+
+                bottom: "22px",
+
+                zIndex: "1000",
+
+                display: "flex",
+
+                flexDirection: "column",
+
+                gap: "8px"
+
+            }
+        );
+
+
+        document.body.appendChild(
+            container
+        );
+
+    }
+
+
+    const toast =
+        document.createElement(
+            "div"
+        );
+
+
+    const colors = {
+
+        success:
+            "rgba(113,227,155,.9)",
+
+        warning:
+            "rgba(255,200,87,.9)",
+
+        error:
+            "rgba(255,93,104,.9)",
+
+        info:
+            "rgba(100,229,255,.9)"
+
+    };
+
+
+    Object.assign(
+        toast.style,
+        {
+
+            padding:
+                "11px 14px",
+
+            border:
+                `1px solid ${colors[type] || colors.info}`,
+
+            borderRadius:
+                "9px",
+
+            background:
+                "rgba(10,13,18,.95)",
+
+            color:
+                "#e8ebee",
+
+            fontFamily:
+                "Inter, sans-serif",
+
+            fontSize:
+                "10px",
+
+            boxShadow:
+                "0 15px 40px rgba(0,0,0,.35)",
+
+            backdropFilter:
+                "blur(12px)",
+
+            animation:
+                "sectionIn .25s ease"
+
         }
+    );
+
+
+    toast.textContent =
+        message;
+
+
+    container.appendChild(
+        toast
+    );
+
+
+    setTimeout(
+        () => {
+
+            toast.style.opacity =
+                "0";
+
+            toast.style.transform =
+                "translateY(6px)";
+
+            toast.style.transition =
+                "all .25s ease";
+
+
+            setTimeout(
+                () => toast.remove(),
+                260
+            );
+
+        },
+        3200
     );
 
 }
@@ -1577,224 +2019,39 @@ function escapeHTML(
 
 
 /* ============================================================
-   CHAT
+   KEYBOARD SHORTCUT
 ============================================================ */
 
-function setupChat() {
+document.addEventListener(
+    "keydown",
+    event => {
 
-    const input =
-        $("chat-input");
+        if (
+            event.key === "Enter"
+            &&
+            !event.shiftKey
+            &&
+            document.activeElement.tagName
+            !== "TEXTAREA"
+            &&
+            !AppState.running
+        ) {
 
-    const button =
-        $("send-chat");
+            const button =
+                $("launch-button");
 
-
-    if (!input || !button) {
-
-        return;
-
-    }
-
-
-    button.addEventListener(
-        "click",
-        sendChat
-    );
-
-
-    input.addEventListener(
-        "keydown",
-        event => {
 
             if (
-                event.key === "Enter"
+                button
+                &&
+                !button.disabled
             ) {
 
-                event.preventDefault();
-
-                sendChat();
+                launchCampaign();
 
             }
 
         }
-    );
-
-}
-
-
-async function sendChat() {
-
-    const input =
-        $("chat-input");
-
-
-    const container =
-        $("chat-messages");
-
-
-    if (
-        !input ||
-        !container
-    ) {
-
-        return;
 
     }
-
-
-    const message =
-        input.value.trim();
-
-
-    if (!message) {
-
-        return;
-
-    }
-
-
-    const empty =
-        container.querySelector(
-            ".chat-empty"
-        );
-
-
-    if (empty) {
-
-        empty.remove();
-
-    }
-
-
-    appendChatMessage(
-        "user",
-        message
-    );
-
-
-    input.value =
-        "";
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/api/chat",
-                {
-
-                    method: "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body:
-                        JSON.stringify({
-                            message
-                        })
-
-                }
-            );
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Chat API returned HTTP ${response.status}`
-            );
-
-        }
-
-
-        const result =
-            await response.json();
-
-
-        const text =
-            result.response
-            || result.message
-            || "No response received.";
-
-
-        appendChatMessage(
-            "assistant",
-            text
-        );
-
-    }
-    catch (error) {
-
-        console.error(
-            "[AutoFuzzLLM] Chat error:",
-            error
-        );
-
-
-        appendChatMessage(
-            "assistant",
-            "Backend connection failed. Check the FastAPI terminal."
-        );
-
-    }
-
-}
-
-
-/* ============================================================
-   CHAT MESSAGE
-============================================================ */
-
-function appendChatMessage(
-    role,
-    text
-) {
-
-    const container =
-        $("chat-messages");
-
-
-    if (!container) {
-
-        return;
-
-    }
-
-
-    const message =
-        document.createElement(
-            "div"
-        );
-
-
-    message.style.padding =
-        "12px";
-
-    message.style.marginBottom =
-        "8px";
-
-    message.style.borderRadius =
-        "10px";
-
-    message.style.background =
-        role === "user"
-            ? "rgba(79,140,255,.10)"
-            : "rgba(255,255,255,.04)";
-
-
-    message.textContent =
-        text;
-
-
-    container.appendChild(
-        message
-    );
-
-
-    container.scrollTop =
-        container.scrollHeight;
-
-}
+);

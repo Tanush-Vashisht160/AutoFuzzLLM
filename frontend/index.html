@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
 
@@ -9,10 +8,21 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>AutoFuzzLLM</title>
+    <meta
+        name="theme-color"
+        content="#07090d"
+    >
 
-    <!-- IMPORTANT:
-         CSS path is relative to the FastAPI server root -->
+    <title>AutoFuzzLLM — LLM Security Fuzzer</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
     <link
         rel="stylesheet"
         href="/frontend/components.css"
@@ -21,341 +31,471 @@
 
 <body>
 
-    <div id="app">
+<!-- =========================================================
+     BACKGROUND
+========================================================= -->
 
-        <!-- =========================
-             SIDEBAR
-        ========================== -->
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+<div class="grid-overlay"></div>
 
-        <aside class="sidebar">
+<div class="cursor-glow" id="cursor-glow"></div>
 
-            <div class="brand">
 
-                <div class="brand-icon">
-                    ⚡
-                </div>
+<!-- =========================================================
+     APP
+========================================================= -->
 
-                <div>
-                    <h1>AutoFuzzLLM</h1>
-                    <span>LLM Security Fuzzer</span>
-                </div>
+<div id="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+<!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                ⚡
+            </div>
+
+            <div class="brand-copy">
+
+                <h1>
+                    AutoFuzz<span>LLM</span>
+                </h1>
+
+                <p>
+                    Autonomous LLM Security Fuzzer
+                </p>
 
             </div>
 
-
-            <div class="sidebar-section">
-
-                <div class="sidebar-title">
-                    WORKSPACE
-                </div>
+        </div>
 
 
-                <button
-                    class="nav-item active"
-                    data-section="campaign"
-                >
-                    <span>🚀</span>
-                    Batch Fuzzing
-                </button>
+        <div class="sidebar-divider"></div>
 
 
-                <button
-                    class="nav-item"
-                    data-section="live"
-                >
-                    <span>💬</span>
-                    Live Conversation
-                </button>
+        <div class="nav-label">
+            WORKSPACE
+        </div>
 
 
-                <button
-                    class="nav-item"
-                    data-section="analytics"
-                >
-                    <span>📊</span>
-                    Analytics
-                </button>
+        <nav class="navigation">
+
+            <button
+                class="nav-item active"
+                data-section="campaign"
+            >
+                <span class="nav-icon">01</span>
+                <span>Campaign</span>
+            </button>
 
 
-                <button
-                    class="nav-item"
-                    data-section="history"
-                >
-                    <span>📜</span>
-                    Campaign History
-                </button>
+            <button
+                class="nav-item"
+                data-section="live"
+            >
+                <span class="nav-icon">02</span>
+                <span>Live Test</span>
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-section="analytics"
+            >
+                <span class="nav-icon">03</span>
+                <span>Analytics</span>
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-section="history"
+            >
+                <span class="nav-icon">04</span>
+                <span>History</span>
+            </button>
+
+        </nav>
+
+
+        <div class="sidebar-spacer"></div>
+
+
+        <!-- SYSTEM STATUS -->
+
+        <div class="system-card">
+
+            <div class="system-top">
+
+                <span class="system-pulse"></span>
+
+                <span>SYSTEM ONLINE</span>
 
             </div>
 
+            <div class="system-status">
+                FastAPI
+                <span>CONNECTED</span>
+            </div>
 
-            <div class="sidebar-section">
+            <div class="system-status">
+                Engine
+                <span>READY</span>
+            </div>
 
-                <div class="sidebar-title">
-                    SYSTEM
-                </div>
+        </div>
 
 
-                <div class="system-status">
+        <div class="sidebar-footer">
 
-                    <span class="status-dot"></span>
+            <span>AutoFuzzLLM</span>
 
-                    <div>
-                        <strong>Backend Online</strong>
-                        <small>FastAPI connected</small>
+            <span class="mono">
+                v2.0
+            </span>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main-content">
+
+
+<!-- =====================================================
+         TOPBAR
+    ====================================================== -->
+
+<header class="topbar">
+
+    <div>
+
+        <div class="breadcrumb">
+
+            <strong>AutoFuzzLLM</strong>
+
+            <span>/</span>
+
+            Security Testing
+
+            <span>/</span>
+
+            Batch Fuzzing
+
+        </div>
+
+        <h1 id="page-title">
+            Evolutionary Campaign
+        </h1>
+
+    </div>
+
+
+    <div class="topbar-right">
+
+        <div class="connection-pill">
+
+            <span class="connection-dot"></span>
+
+            API ONLINE
+
+        </div>
+
+        <div class="clock mono" id="clock">
+            00:00:00
+        </div>
+
+    </div>
+
+</header>
+
+
+        <!-- =================================================
+             CAMPAIGN
+        ================================================== -->
+
+        <section
+            id="campaign-section"
+            class="page-section active-section"
+        >
+
+
+            <!-- HERO -->
+
+            <div class="hero">
+
+                <div class="hero-copy">
+
+                    <div class="hero-tag">
+                        AUTONOMOUS SECURITY TESTING
                     </div>
 
-                </div>
-
-            </div>
-
-
-            <div class="sidebar-footer">
-
-                <span>AutoFuzzLLM</span>
-                <span>v2.0</span>
-
-            </div>
-
-        </aside>
-
-
-        <!-- =========================
-             MAIN AREA
-        ========================== -->
-
-        <main class="main-content">
-
-
-            <!-- =========================
-                 TOP BAR
-            ========================== -->
-
-            <header class="topbar">
-
-                <div>
-
-                    <div class="breadcrumb">
-                        Security Testing
-                        <span>/</span>
-                        Batch Fuzzing
-                    </div>
-
-
-                    <h2 id="page-title">
-                        Evolutionary Campaign
+                    <h2>
+                        Find what your
+                        <span>LLM shouldn't reveal.</span>
                     </h2>
 
-                </div>
-
-
-                <div class="backend-indicator">
-
-                    <span class="status-dot"></span>
-
-                    API Online
-
-                </div>
-
-            </header>
-
-
-            <!-- =========================
-                 CAMPAIGN SECTION
-            ========================== -->
-
-            <section
-                id="campaign-section"
-                class="page-section active-section"
-            >
-
-
-                <div class="section-heading">
-
-                    <div>
-
-                        <h3>
-                            Configure Campaign Parameters
-                        </h3>
-
-                        <p>
-                            Configure evolutionary fuzzing parameters
-                            and evaluate LLM security.
-                        </p>
-
-                    </div>
+                    <p>
+                        Generate adversarial prompts, evolve attack
+                        strategies and measure model resilience through
+                        automated security fuzzing.
+                    </p>
 
                 </div>
 
 
-                <!-- =========================
-                     CONFIGURATION CARD
-                ========================== -->
+                <div class="hero-visual">
 
-                <div class="card configuration-card">
+                    <div class="orb">
 
+                        <div class="orb-ring ring-one"></div>
+                        <div class="orb-ring ring-two"></div>
+                        <div class="orb-ring ring-three"></div>
 
-                    <div class="card-header">
-
-                        <div>
-
-                            <h3>
-                                Campaign Configuration
-                            </h3>
-
-                            <p>
-                                Select models, seeds and evolution settings.
-                            </p>
-
+                        <div class="orb-core">
+                            AF
                         </div>
 
                     </div>
 
+                </div>
 
-                    <!-- =========================
-                         PROVIDERS
-                    ========================== -->
-
-                    <div class="form-group">
-
-                        <label>
-                            LLM Providers
-                        </label>
+            </div>
 
 
-                        <div class="provider-grid">
+
+            <!-- CAMPAIGN CONFIGURATION -->
+
+            <div class="section-title">
+
+                <div>
+
+                    <span class="section-index">
+                        01
+                    </span>
+
+                    <h3>
+                        Campaign configuration
+                    </h3>
+
+                </div>
+
+                <span class="section-note">
+                    DEFINE ATTACK SURFACE
+                </span>
+
+            </div>
 
 
-                            <label class="provider-option">
+            <div class="config-layout">
 
-                                <input
-                                    type="checkbox"
-                                    name="provider"
-                                    value="Gemini"
-                                >
 
-                                <span class="provider-box">
+                <!-- PROVIDERS -->
+
+                <div class="panel provider-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <span class="panel-kicker">
+                                TARGET MODELS
+                            </span>
+
+                            <h3>
+                                LLM Providers
+                            </h3>
+
+                        </div>
+
+                        <span class="panel-count">
+                            <span id="provider-count">1</span>
+                            SELECTED
+                        </span>
+
+                    </div>
+
+
+                    <div class="provider-list">
+
+
+                        <label class="provider">
+
+                            <input
+                                type="checkbox"
+                                name="provider"
+                                value="Gemini"
+                            >
+
+                            <div class="provider-content">
+
+                                <div class="provider-main">
+
+                                    <span class="provider-status"></span>
 
                                     <strong>
                                         Gemini
                                     </strong>
 
-                                    <small>
-                                        Cloud Model
-                                    </small>
+                                </div>
 
+                                <span>
+                                    CLOUD
                                 </span>
 
-                            </label>
+                            </div>
+
+                        </label>
 
 
-                            <label class="provider-option">
+                        <label class="provider">
 
-                                <input
-                                    type="checkbox"
-                                    name="provider"
-                                    value="Groq"
-                                >
+                            <input
+                                type="checkbox"
+                                name="provider"
+                                value="Groq"
+                            >
 
-                                <span class="provider-box">
+                            <div class="provider-content">
+
+                                <div class="provider-main">
+
+                                    <span class="provider-status"></span>
 
                                     <strong>
                                         Groq
                                     </strong>
 
-                                    <small>
-                                        Cloud Model
-                                    </small>
+                                </div>
 
+                                <span>
+                                    CLOUD
                                 </span>
 
-                            </label>
+                            </div>
+
+                        </label>
 
 
-                            <label class="provider-option">
+                        <label class="provider">
 
-                                <input
-                                    type="checkbox"
-                                    name="provider"
-                                    value="OpenRouter"
-                                >
+                            <input
+                                type="checkbox"
+                                name="provider"
+                                value="OpenRouter"
+                            >
 
-                                <span class="provider-box">
+                            <div class="provider-content">
+
+                                <div class="provider-main">
+
+                                    <span class="provider-status"></span>
 
                                     <strong>
                                         OpenRouter
                                     </strong>
 
-                                    <small>
-                                        Cloud Model
-                                    </small>
+                                </div>
 
+                                <span>
+                                    CLOUD
                                 </span>
 
-                            </label>
+                            </div>
+
+                        </label>
 
 
-                            <label class="provider-option">
+                        <label class="provider">
 
-                                <input
-                                    type="checkbox"
-                                    name="provider"
-                                    value="Qwen 0.5B"
-                                >
+                            <input
+                                type="checkbox"
+                                name="provider"
+                                value="Qwen 0.5B"
+                            >
 
-                                <span class="provider-box">
+                            <div class="provider-content">
+
+                                <div class="provider-main">
+
+                                    <span class="provider-status"></span>
 
                                     <strong>
                                         Qwen 0.5B
                                     </strong>
 
-                                    <small>
-                                        Local Ollama
-                                    </small>
+                                </div>
 
+                                <span>
+                                    LOCAL
                                 </span>
 
-                            </label>
+                            </div>
+
+                        </label>
 
 
-                            <label class="provider-option">
+                        <label class="provider selected">
 
-                                <input
-                                    type="checkbox"
-                                    name="provider"
-                                    value="Phi3 Mini"
-                                    checked
-                                >
+                            <input
+                                type="checkbox"
+                                name="provider"
+                                value="Phi3 Mini"
+                                checked
+                            >
 
-                                <span class="provider-box">
+                            <div class="provider-content">
+
+                                <div class="provider-main">
+
+                                    <span class="provider-status"></span>
 
                                     <strong>
                                         Phi3 Mini
                                     </strong>
 
-                                    <small>
-                                        Local Ollama
-                                    </small>
+                                </div>
 
+                                <span>
+                                    LOCAL
                                 </span>
 
-                            </label>
+                            </div>
 
-
-                        </div>
+                        </label>
 
                     </div>
 
+                </div>
 
-                    <!-- =========================
-                         SEED SOURCE
-                    ========================== -->
+                <!-- =========================
+                    SEED CONFIGURATION
+                ========================== -->
+
+                <div class="seed-configuration">
+
+                    <!-- SEED SOURCE -->
 
                     <div class="form-group">
 
                         <label>
                             Seed Source
                         </label>
-
 
                         <select id="seed-source">
 
@@ -376,9 +516,7 @@
                     </div>
 
 
-                    <!-- =========================
-                         DATASET
-                    ========================== -->
+                    <!-- DATASET -->
 
                     <div
                         class="form-group"
@@ -388,7 +526,6 @@
                         <label>
                             Benchmark Dataset
                         </label>
-
 
                         <select id="dataset">
 
@@ -405,9 +542,42 @@
                     </div>
 
 
-                    <!-- =========================
-                         CUSTOM PROMPT
-                    ========================== -->
+                    <!-- INITIAL SEED COUNT -->
+
+                    <div
+                        class="form-group seed-count-group"
+                        id="initial-seed-group"
+                    >
+
+                        <label>
+
+                            Initial Seed Count
+
+                            <span
+                                id="initial-seed-value"
+                                class="value-badge"
+                            >
+                                5
+                            </span>
+
+                        </label>
+
+                        <input
+                            id="initial-seed-count"
+                            type="range"
+                            min="1"
+                            max="50"
+                            value="5"
+                        >
+
+                        <p class="field-hint">
+                            Number of starting seeds loaded into the campaign.
+                        </p>
+
+                    </div>
+
+
+                    <!-- CUSTOM PROMPT -->
 
                     <div
                         class="form-group hidden"
@@ -418,327 +588,501 @@
                             Custom Seed Prompt
                         </label>
 
-
                         <textarea
                             id="custom-prompt"
                             placeholder="Enter your attack prompt..."
                         ></textarea>
 
-                    </div>
-
-
-                    <!-- =========================
-                         SLIDERS
-                    ========================== -->
-
-                    <div class="settings-grid">
-
-
-                        <div class="form-group">
-
-                            <label>
-
-                                Mutations per Generation
-
-                                <span
-                                    id="mutation-value"
-                                    class="value-badge"
-                                >
-                                    5
-                                </span>
-
-                            </label>
-
-
-                            <input
-                                id="mutations"
-                                type="range"
-                                min="1"
-                                max="20"
-                                value="5"
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label>
-
-                                Maximum Generations
-
-                                <span
-                                    id="generation-value"
-                                    class="value-badge"
-                                >
-                                    3
-                                </span>
-
-                            </label>
-
-
-                            <input
-                                id="generations"
-                                type="range"
-                                min="1"
-                                max="10"
-                                value="3"
-                            >
-
-                        </div>
-
+                        <p class="field-hint">
+                            Provide a custom seed prompt for mutation and fuzzing.
+                        </p>
 
                     </div>
 
+                </div>
 
-                    <!-- =========================
-                         ADVANCED SETTINGS
-                    ========================== -->
+            <!-- EVOLUTION SETTINGS -->
 
-                    <details class="advanced-settings">
+            <div class="section-title compact">
 
-                        <summary>
-                            ⚙️ Advanced Settings
-                        </summary>
+                <div>
 
+                    <span class="section-index">
+                        02
+                    </span>
 
-                        <div class="settings-grid">
+                    <h3>
+                        Evolution parameters
+                    </h3>
 
+                </div>
 
-                            <div class="form-group">
+                <span class="section-note">
+                    CONTROL SEARCH DEPTH
+                </span>
 
-                                <label>
-
-                                    Maximum Seed Pool Size
-
-                                    <span
-                                        id="pool-value"
-                                        class="value-badge"
-                                    >
-                                        100
-                                    </span>
-
-                                </label>
+            </div>
 
 
-                                <input
-                                    id="seed-pool-size"
-                                    type="range"
-                                    min="10"
-                                    max="500"
-                                    step="50"
-                                    value="100"
-                                >
-
-                            </div>
+            <div class="parameter-grid">
 
 
-                            <div class="form-group">
+                <!-- MUTATIONS -->
 
-                                <label>
+                <div class="parameter-card">
 
-                                    Fitness Threshold
+                    <div class="parameter-top">
 
-                                    <span
-                                        id="fitness-value"
-                                        class="value-badge"
-                                    >
-                                        30
-                                    </span>
+                        <div>
 
-                                </label>
+                            <span>
+                                MUTATION RATE
+                            </span>
 
-
-                                <input
-                                    id="fitness-threshold"
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value="30"
-                                >
-
-                            </div>
-
+                            <h4>
+                                Mutations / generation
+                            </h4>
 
                         </div>
 
-                    </details>
+                        <strong
+                            id="mutation-value"
+                            class="parameter-value"
+                        >
+                            5
+                        </strong>
 
+                    </div>
 
-                    <!-- =========================
-                         LAUNCH BUTTON
-                    ========================== -->
-
-                    <button
-                        id="launch-button"
-                        class="launch-button"
+                    <input
+                        id="mutations"
+                        type="range"
+                        min="1"
+                        max="20"
+                        value="5"
                     >
 
-                        <span>
-                            🚀
-                        </span>
+                    <div class="range-meta">
 
-                        Launch Evolutionary Campaign
+                        <span>1</span>
 
-                    </button>
+                        <span>20</span>
 
+                    </div>
 
                 </div>
 
 
-                <!-- =========================
-                     LIVE CAMPAIGN STATUS
-                ========================== -->
 
-                <div
-                    id="execution-panel"
-                    class="card execution-panel hidden"
-                >
+                <!-- GENERATIONS -->
 
-                    <div class="execution-header">
+                <div class="parameter-card">
+
+                    <div class="parameter-top">
 
                         <div>
 
-                            <span class="live-badge">
-                                ● LIVE
+                            <span>
+                                SEARCH DEPTH
+                            </span>
+
+                            <h4>
+                                Maximum generations
+                            </h4>
+
+                        </div>
+
+                        <strong
+                            id="generation-value"
+                            class="parameter-value"
+                        >
+                            3
+                        </strong>
+
+                    </div>
+
+                    <input
+                        id="generations"
+                        type="range"
+                        min="1"
+                        max="10"
+                        value="3"
+                    >
+
+                    <div class="range-meta">
+
+                        <span>1</span>
+
+                        <span>10</span>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- POOL -->
+
+                <div class="parameter-card">
+
+                    <div class="parameter-top">
+
+                        <div>
+
+                            <span>
+                                SEED MEMORY
+                            </span>
+
+                            <h4>
+                                Maximum seed pool
+                            </h4>
+
+                        </div>
+
+                        <strong
+                            id="pool-value"
+                            class="parameter-value"
+                        >
+                            100
+                        </strong>
+
+                    </div>
+
+                    <input
+                        id="seed-pool-size"
+                        type="range"
+                        min="10"
+                        max="500"
+                        value="100"
+                        step="10"
+                    >
+
+                    <div class="range-meta">
+
+                        <span>10</span>
+
+                        <span>500</span>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- THRESHOLD -->
+
+                <div class="parameter-card">
+
+                    <div class="parameter-top">
+
+                        <div>
+
+                            <span>
+                                FITNESS
+                            </span>
+
+                            <h4>
+                                Fitness threshold
+                            </h4>
+
+                        </div>
+
+                        <strong
+                            id="fitness-value"
+                            class="parameter-value"
+                        >
+                            30
+                        </strong>
+
+                    </div>
+
+                    <input
+                        id="fitness-threshold"
+                        type="range"
+                        min="0"
+                        max="100"
+                        value="30"
+                    >
+
+                    <div class="range-meta">
+
+                        <span>0</span>
+
+                        <span>100</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- LAUNCH -->
+
+            <div class="launch-area">
+
+                <button
+                    id="launch-button"
+                    class="launch-button"
+                >
+
+                    <span class="launch-icon">
+                        →
+                    </span>
+
+                    <span class="launch-text">
+                        Launch security campaign
+                    </span>
+
+                    <span class="launch-shortcut mono">
+                        ENTER
+                    </span>
+
+                </button>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 EXECUTION
+            ================================================== -->
+
+            <div
+                id="execution-panel"
+                class="execution-panel hidden"
+            >
+
+                <div class="execution-top">
+
+                    <div>
+
+                        <div class="execution-label">
+
+                            <span class="execution-pulse"></span>
+
+                            LIVE EXECUTION
+
+                        </div>
+
+                        <h3>
+                            Campaign in progress
+                        </h3>
+
+                    </div>
+
+                    <div
+                        id="elapsed-time"
+                        class="elapsed mono"
+                    >
+                        0.0s
+                    </div>
+
+                </div>
+
+
+                <div class="execution-track">
+
+                    <div
+                        id="progress-bar"
+                        class="execution-progress"
+                    ></div>
+
+                </div>
+
+
+                <div class="execution-info">
+
+                    <span id="execution-status">
+                        Initializing threat assessment matrix...
+                    </span>
+
+                    <span
+                        id="execution-percent"
+                        class="mono"
+                    >
+                        0%
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 OVERVIEW
+            ================================================== -->
+
+            <div class="section-title compact">
+
+                <div>
+
+                    <span class="section-index">
+                        03
+                    </span>
+
+                    <h3>
+                        Campaign intelligence
+                    </h3>
+
+                </div>
+
+            </div>
+
+
+            <div class="metrics-grid">
+
+
+                <div class="metric">
+
+                    <span class="metric-label">
+                        PLANNED TESTS
+                    </span>
+
+                    <strong id="planned-tests">
+                        0
+                    </strong>
+
+                    <span class="metric-sub">
+                        estimated attack paths
+                    </span>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <span class="metric-label">
+                        EXECUTED
+                    </span>
+
+                    <strong id="executed-tests">
+                        0
+                    </strong>
+
+                    <span class="metric-sub">
+                        completed evaluations
+                    </span>
+
+                </div>
+
+
+                <div class="metric">
+
+                    <span class="metric-label">
+                        FAILURES
+                    </span>
+
+                    <strong id="failed-tests">
+                        0
+                    </strong>
+
+                    <span class="metric-sub">
+                        infrastructure errors
+                    </span>
+
+                </div>
+
+
+                <div class="metric accent">
+
+                    <span class="metric-label">
+                        AVG RISK
+                    </span>
+
+                    <strong id="average-risk">
+                        0
+                    </strong>
+
+                    <span class="metric-sub">
+                        normalized threat score
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 LVI
+            ================================================== -->
+
+            <div class="lvi-layout">
+
+
+                <div class="lvi-card">
+
+                    <div class="lvi-header">
+
+                        <div>
+
+                            <span class="panel-kicker">
+                                LLM VULNERABILITY INDEX
                             </span>
 
                             <h3>
-                                Active Campaign Execution
+                                Security exposure
                             </h3>
 
                         </div>
 
+                        <div class="lvi-score">
 
-                        <div id="elapsed-time">
-                            0.0s
+                            <strong id="average-lvi">
+                                0
+                            </strong>
+
+                            <span>
+                                / 100
+                            </span>
+
                         </div>
 
                     </div>
 
 
-                    <div class="progress-container">
+                    <div class="lvi-bar">
 
                         <div
-                            id="progress-bar"
-                            class="progress-bar"
+                            id="lvi-progress"
+                            class="lvi-progress"
                         ></div>
 
                     </div>
 
 
-                    <div
-                        id="execution-status"
-                        class="execution-status"
-                    >
-                        Initializing Threat Assessment Matrix...
+                    <div class="lvi-scale">
+
+                        <span>
+                            LOW
+                        </span>
+
+                        <span>
+                            MODERATE
+                        </span>
+
+                        <span>
+                            HIGH
+                        </span>
+
+                        <span>
+                            CRITICAL
+                        </span>
+
                     </div>
 
                 </div>
 
 
-                <!-- =========================
-                     PRIMARY METRICS
-                ========================== -->
+                <div class="lvi-stats">
 
-                <div class="metrics-grid">
-
-
-                    <div class="metric-card">
+                    <div>
 
                         <span>
-                            Estimated
-                        </span>
-
-                        <strong id="planned-tests">
-                            0
-                        </strong>
-
-                        <small>
-                            Planned tests
-                        </small>
-
-                    </div>
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            ✓ Executed
-                        </span>
-
-                        <strong id="executed-tests">
-                            0
-                        </strong>
-
-                        <small>
-                            Completed tests
-                        </small>
-
-                    </div>
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            ! Failed
-                        </span>
-
-                        <strong id="failed-tests">
-                            0
-                        </strong>
-
-                        <small>
-                            Infrastructure failures
-                        </small>
-
-                    </div>
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            ◇ Average Risk
-                        </span>
-
-                        <strong id="average-risk">
-                            0
-                        </strong>
-
-                        <small>
-                            Overall risk score
-                        </small>
-
-                    </div>
-
-
-                </div>
-
-
-                <!-- =========================
-                     LVI METRICS
-                ========================== -->
-
-                <div class="metrics-grid four">
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            Average LVI
-                        </span>
-
-                        <strong id="average-lvi">
-                            0
-                        </strong>
-
-                    </div>
-
-
-                    <div class="metric-card">
-
-                        <span>
-                            Highest LVI
+                            HIGHEST
                         </span>
 
                         <strong id="highest-lvi">
@@ -748,10 +1092,10 @@
                     </div>
 
 
-                    <div class="metric-card">
+                    <div>
 
                         <span>
-                            Lowest LVI
+                            LOWEST
                         </span>
 
                         <strong id="lowest-lvi">
@@ -761,10 +1105,10 @@
                     </div>
 
 
-                    <div class="metric-card">
+                    <div>
 
                         <span>
-                            Critical LVI
+                            CRITICAL
                         </span>
 
                         <strong id="critical-lvi">
@@ -773,495 +1117,357 @@
 
                     </div>
 
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 SEVERITY
+            ================================================== -->
+
+            <div class="severity-grid">
+
+                <div class="severity safe">
+
+                    <div class="severity-marker"></div>
+
+                    <span>
+                        SAFE
+                    </span>
+
+                    <strong id="safe-count">
+                        0
+                    </strong>
 
                 </div>
 
 
-                <!-- =========================
-                     SEVERITY
-                ========================== -->
+                <div class="severity warning">
 
-                <div class="severity-grid">
+                    <div class="severity-marker"></div>
 
+                    <span>
+                        WARNING
+                    </span>
 
-                    <div class="severity-card safe">
-
-                        <span>
-                            SAFE
-                        </span>
-
-                        <strong id="safe-count">
-                            0
-                        </strong>
-
-                    </div>
-
-
-                    <div class="severity-card warning">
-
-                        <span>
-                            WARNING
-                        </span>
-
-                        <strong id="warning-count">
-                            0
-                        </strong>
-
-                    </div>
-
-
-                    <div class="severity-card critical">
-
-                        <span>
-                            CRITICAL
-                        </span>
-
-                        <strong id="critical-count">
-                            0
-                        </strong>
-
-                    </div>
-
+                    <strong id="warning-count">
+                        0
+                    </strong>
 
                 </div>
 
 
-                <!-- =========================
-                     ANALYTICS
-                ========================== -->
+                <div class="severity critical">
 
-                <div class="dashboard-section">
+                    <div class="severity-marker"></div>
 
-                    <div class="dashboard-title">
+                    <span>
+                        CRITICAL
+                    </span>
 
-                        <span>
-                            ANALYTICS
-                        </span>
+                    <strong id="critical-count">
+                        0
+                    </strong>
 
-                    </div>
+                </div>
+
+            </div>
 
 
-                    <div class="chart-grid">
+
+            <!-- =================================================
+                 ANALYTICS
+            ================================================== -->
+
+            <div class="analytics-grid">
 
 
-                        <!-- THREAT CHART -->
+                <!-- THREAT PROFILE -->
 
-                        <div class="chart-card">
+                <div class="panel analytics-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <span class="panel-kicker">
+                                THREAT PROFILE
+                            </span>
 
                             <h3>
-                                📈 Statistical Threat Charts
+                                Verdict distribution
                             </h3>
 
+                        </div>
 
-                            <div class="chart-placeholder">
-
-
-                                <div class="chart-bars">
+                    </div>
 
 
-                                    <div class="bar safe-bar">
+                    <div class="threat-chart">
 
-                                        <span></span>
+                        <div class="chart-axis">
 
-                                    </div>
+                            <span>100%</span>
+                            <span>75%</span>
+                            <span>50%</span>
+                            <span>25%</span>
+                            <span>0%</span>
 
-
-                                    <div class="bar warning-bar">
-
-                                        <span></span>
-
-                                    </div>
-
-
-                                    <div class="bar critical-bar">
-
-                                        <span></span>
-
-                                    </div>
+                        </div>
 
 
-                                </div>
+                        <div class="bars">
+
+                            <div class="bar-column">
+
+                                <div
+                                    class="bar-value safe-bar"
+                                    id="safe-bar"
+                                ></div>
+
+                                <span>
+                                    SAFE
+                                </span>
+
+                            </div>
 
 
-                                <div class="chart-legend">
+                            <div class="bar-column">
 
-                                    <span>
-                                        Safe
-                                    </span>
+                                <div
+                                    class="bar-value warning-bar"
+                                    id="warning-bar"
+                                ></div>
 
-                                    <span>
-                                        Warning
-                                    </span>
+                                <span>
+                                    WARNING
+                                </span>
 
-                                    <span>
-                                        Critical
-                                    </span>
-
-                                </div>
+                            </div>
 
 
-                                <p>
-                                    Final verdicts across tested models
-                                </p>
+                            <div class="bar-column">
 
+                                <div
+                                    class="bar-value critical-bar"
+                                    id="critical-bar"
+                                ></div>
+
+                                <span>
+                                    CRITICAL
+                                </span>
 
                             </div>
 
                         </div>
 
+                    </div>
 
-                        <!-- ATTACK DISTRIBUTION -->
+                </div>
 
-                        <div class="chart-card">
+
+
+                <!-- ATTACK TYPES -->
+
+                <div class="panel analytics-panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <span class="panel-kicker">
+                                ATTACK SURFACE
+                            </span>
 
                             <h3>
-                                🎯 Attack Category Distribution
+                                Attack distribution
                             </h3>
 
-
-                            <div
-                                id="attack-distribution"
-                                class="attack-list"
-                            >
-
-
-                                <div>
-
-                                    <span>
-                                        Prompt Injection
-                                    </span>
-
-                                    <strong>
-                                        0
-                                    </strong>
-
-                                </div>
-
-
-                                <div>
-
-                                    <span>
-                                        Jailbreak
-                                    </span>
-
-                                    <strong>
-                                        0
-                                    </strong>
-
-                                </div>
-
-
-                                <div>
-
-                                    <span>
-                                        Prompt Leakage
-                                    </span>
-
-                                    <strong>
-                                        0
-                                    </strong>
-
-                                </div>
-
-
-                                <div>
-
-                                    <span>
-                                        Policy Violation
-                                    </span>
-
-                                    <strong>
-                                        0
-                                    </strong>
-
-                                </div>
-
-
-                            </div>
-
-                        </div>
-
-
-                    </div>
-
-                </div>
-
-
-                <!-- =========================
-                     LVI DASHBOARD
-                ========================== -->
-
-                <div class="dashboard-section">
-
-
-                    <div class="dashboard-title">
-
-                        <span>
-                            VULNERABILITY INDEX
-                        </span>
-
-                    </div>
-
-
-                    <div class="lvi-dashboard">
-
-
-                        <div class="lvi-main">
-
-                            <h3>
-                                🛡️ LLM Vulnerability Index Dashboard
-                            </h3>
-
-
-                            <div class="lvi-number">
-
-                                <strong id="lvi-main-value">
-                                    0
-                                </strong>
-
-                                <span>
-                                    LVI
-                                </span>
-
-                            </div>
-
-
-                            <p id="lvi-status">
-                                Awaiting campaign
-                            </p>
-
-                        </div>
-
-
-                        <div class="lvi-components">
-
-
-                            <div>
-
-                                <strong>
-                                    25%
-                                </strong>
-
-                                <span>
-                                    Severity
-                                </span>
-
-                            </div>
-
-
-                            <div>
-
-                                <strong>
-                                    20%
-                                </strong>
-
-                                <span>
-                                    Exploitability
-                                </span>
-
-                            </div>
-
-
-                            <div>
-
-                                <strong>
-                                    15%
-                                </strong>
-
-                                <span>
-                                    Confidence
-                                </span>
-
-                            </div>
-
-
-                            <div>
-
-                                <strong>
-                                    15%
-                                </strong>
-
-                                <span>
-                                    Novelty
-                                </span>
-
-                            </div>
-
-
-                        </div>
-
-
-                    </div>
-
-                </div>
-
-
-                <!-- =========================
-                     MODEL COMPARISON
-                ========================== -->
-
-                <div class="dashboard-section">
-
-
-                    <div class="dashboard-title">
-
-                        <span>
-                            MODEL COMPARISON
-                        </span>
-
-                    </div>
-
-
-                    <div class="model-section">
-
-                        <h2>
-                            🏁 Multi-Model Comparative Dashboard
-                        </h2>
-
-
-                        <div
-                            id="model-cards"
-                            class="model-grid"
-                        >
-
-                            <!--
-                                Model cards are populated
-                                dynamically by app.js.
-                            -->
-
                         </div>
 
                     </div>
-
-                </div>
-
-
-            </section>
-
-
-            <!-- =========================
-                 LIVE CONVERSATION
-            ========================== -->
-
-            <section
-                id="live-section"
-                class="page-section"
-            >
-
-
-                <div class="section-heading">
-
-                    <h3>
-                        💬 Conversation Fuzzer
-                    </h3>
-
-                    <p>
-                        Test an LLM interactively.
-                    </p>
-
-                </div>
-
-
-                <div class="card chat-card">
 
 
                     <div
-                        id="chat-messages"
-                        class="chat-messages"
+                        id="attack-distribution"
+                        class="attack-list"
                     >
 
-                        <div class="chat-empty">
-                            Start a conversation to test the model.
+                        <div class="empty-state">
+                            No campaign data yet.
                         </div>
 
                     </div>
 
+                </div>
 
-                    <div class="chat-input">
-
-                        <input
-                            id="chat-input"
-                            type="text"
-                            placeholder="Type your attack prompt..."
-                        >
+            </div>
 
 
-                        <button id="send-chat">
-                            Send
-                        </button>
+
+            <!-- =================================================
+                 MODEL COMPARISON
+            ================================================== -->
+
+            <div class="panel model-panel">
+
+                <div class="panel-header">
+
+                    <div>
+
+                        <span class="panel-kicker">
+                            MODEL BENCHMARK
+                        </span>
+
+                        <h3>
+                            Provider comparison
+                        </h3>
 
                     </div>
 
+                </div>
+
+
+                <div
+                    id="model-comparison"
+                    class="model-table"
+                >
+
+                    <div class="empty-state">
+                        Run a campaign to compare model resilience.
+                    </div>
 
                 </div>
 
-            </section>
+            </div>
 
 
-            <!-- =========================
-                 ANALYTICS PAGE
-            ========================== -->
-
-            <section
-                id="analytics-section"
-                class="page-section"
-            >
+        </section>
 
 
-                <div class="section-heading">
 
-                    <h3>
-                        📊 Security Analytics
-                    </h3>
+        <!-- =====================================================
+             LIVE
+        ====================================================== -->
+
+        <section
+            id="live-section"
+            class="page-section"
+        >
+
+            <div class="page-placeholder">
+
+                <div class="placeholder-number">
+                    02
+                </div>
+
+                <div>
+
+                    <span class="panel-kicker">
+                        LIVE TESTING
+                    </span>
+
+                    <h2>
+                        Conversation Fuzzer
+                    </h2>
 
                     <p>
-                        Detailed campaign analytics will appear here.
+                        Interactive adversarial conversation testing
+                        is ready for integration with the FastAPI
+                        conversation endpoint.
                     </p>
 
                 </div>
 
+            </div>
 
-            </section>
-
-
-            <!-- =========================
-                 HISTORY PAGE
-            ========================== -->
-
-            <section
-                id="history-section"
-                class="page-section"
-            >
+        </section>
 
 
-                <div class="section-heading">
 
-                    <h3>
-                        📜 Campaign History
-                    </h3>
+        <!-- =====================================================
+             ANALYTICS
+        ====================================================== -->
+
+        <section
+            id="analytics-section"
+            class="page-section"
+        >
+
+            <div class="page-placeholder">
+
+                <div class="placeholder-number">
+                    03
+                </div>
+
+                <div>
+
+                    <span class="panel-kicker">
+                        SECURITY TELEMETRY
+                    </span>
+
+                    <h2>
+                        Analytics
+                    </h2>
 
                     <p>
-                        Previous fuzzing campaigns.
+                        Campaign intelligence will appear here as
+                        the analysis layer expands.
                     </p>
 
                 </div>
 
+            </div>
 
-            </section>
-
-
-        </main>
-
-    </div>
+        </section>
 
 
-    <!-- =====================================================
-         IMPORTANT:
-         JavaScript must use the EXACT frontend path.
-    ====================================================== -->
 
-    <script src="/frontend/app.js"></script>
+        <!-- =====================================================
+             HISTORY
+        ====================================================== -->
+
+        <section
+            id="history-section"
+            class="page-section"
+        >
+
+            <div class="page-placeholder">
+
+                <div class="placeholder-number">
+                    04
+                </div>
+
+                <div>
+
+                    <span class="panel-kicker">
+                        CAMPAIGN ARCHIVE
+                    </span>
+
+                    <h2>
+                        History
+                    </h2>
+
+                    <p>
+                        Previous fuzzing campaigns can be connected
+                        here when persistent campaign storage is enabled.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<script src="/frontend/app.js"></script>
 
 </body>
-
 </html>
