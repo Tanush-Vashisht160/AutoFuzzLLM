@@ -11,7 +11,7 @@ from fuzzing.mutations.ai_mutator import AIMutator
 from fuzzing.mutator import PromptMutator
 from fuzzing.novelty import NoveltySearch
 from fuzzing.operator_statistics import OperatorStatistics
-from fuzzing.oracle.groq_judge import GroqJudge
+from fuzzing.oracle.tinyllama_judge import TinyLlamaJudge
 from fuzzing.oracle.qwen_judge import QwenJudge
 from fuzzing.oracle.consensus import ConsensusEngine
 from fuzzing.oracle.fusion import ResultFusion
@@ -49,7 +49,7 @@ class FuzzCampaign:
         self.mutation_engine = mutation_engine
 
         # Oracle & Evaluation Pipeline Components
-        self.groq_judge = GroqJudge()
+        self.groq_judge = TinyLlamaJudge()
         self.qwen_judge = QwenJudge()
         self.consensus = ConsensusEngine()
         self.oracle = Oracle()
@@ -322,34 +322,38 @@ class FuzzCampaign:
 
         # Estimate total tests for progress reporting.
         # Each selected seed can generate up to max_tests mutations.
+        # ------------------------------------------------------------
+        # Planned tests
+        #
+        # max_tests = total tests allowed PER GENERATION
+        # generations = number of generations
+        #
+        # Example:
+        # max_tests = 16
+        # generations = 3
+        #
+        # Planned = 16 × 3 = 48
+        # ------------------------------------------------------------
+
         planned_tests = 0
 
-        for gen in range(
-            start_generation,
-            generations
-        ):
+        estimated_pool_size = max(
+            self.seed_pool.size(),
+            1
+        )
+
+        for gen in range(start_generation, generations):
 
             if gen == 0:
-
-                estimated_population = (
-                    self.seed_pool.size()
-                )
-
+                selected_count = estimated_pool_size
             else:
-
-                estimated_population = min(
-                    self.seed_pool.size(),
+                selected_count = min(
+                    estimated_pool_size,
                     MCTS_TOP_K
                 )
 
-            planned_tests += (
-                estimated_population * max_tests
-            )
-
-        planned_tests = max(
-            planned_tests,
-            1
-        )
+            # max_tests is the generation-wide budget
+            planned_tests += max_tests
 
         print(
             f"Planned Campaign Tests: "
@@ -449,10 +453,18 @@ class FuzzCampaign:
                     == "AI Generated Mutations (Recommended)"
                 ):
 
+                    # ------------------------------------------------------------
+                    # Generation-level test budget
+                    # ------------------------------------------------------------
+                    remaining_budget = max_tests - len(generation_results)
+
+                    if remaining_budget <= 0:
+                        break
+
                     mutated_prompts = (
                         self.ai_mutator.generate(
                             current_prompt,
-                            count=max_tests
+                            count=remaining_budget
                         )
                     )
 
@@ -467,7 +479,7 @@ class FuzzCampaign:
                             self.template_mutator
                             .generate_mutations(
                                 current_prompt
-                            )[:max_tests]
+                            )[:remaining_budget]
                         )
 
                 else:
@@ -476,10 +488,13 @@ class FuzzCampaign:
                         self.template_mutator
                         .generate_mutations(
                             current_prompt
-                        )[:max_tests]
+                        )[:remaining_budget]
                     )
 
                 # Execute Mutations
+                # Execute at most max_tests mutations for this generation.
+                mutated_prompts = mutated_prompts[:max_tests]
+
                 for i, attack in enumerate(
                     mutated_prompts,
                     start=1
