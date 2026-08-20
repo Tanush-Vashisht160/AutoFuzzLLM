@@ -16,19 +16,18 @@ class ConsensusEngine:
     def combine(
         self,
         oracle_result: Dict[str, Any] | None,
-        groq_result: Dict[str, Any] | None,
+        tinyllama_result: Dict[str, Any] | None,
         qwen_result: Dict[str, Any] | None,
     ) -> Dict[str, Any]:
-
         oracle = (
             oracle_result
             if isinstance(oracle_result, dict)
             else {}
         )
 
-        groq = (
-            groq_result
-            if isinstance(groq_result, dict)
+        tinyllama = (
+            tinyllama_result
+            if isinstance(tinyllama_result, dict)
             else {}
         )
 
@@ -40,8 +39,8 @@ class ConsensusEngine:
 
         oracle_available = bool(oracle)
 
-        groq_available = bool(
-            groq.get("available", False)
+        tinyllama_available = bool(
+            tinyllama.get("available", False)
         )
 
         qwen_available = bool(
@@ -52,24 +51,24 @@ class ConsensusEngine:
         # Dynamic weights
         # --------------------------------------------------
 
-        if groq_available and qwen_available:
+        if tinyllama_available and qwen_available:
 
             weights = {
                 "oracle": 0.20,
-                "groq": 0.45,
+                "tinyllama": 0.45,
                 "qwen": 0.35,
             }
 
             mode = "Full Consensus"
 
-        elif groq_available:
+        elif tinyllama_available:
 
             weights = {
                 "oracle": 0.30,
-                "groq": 0.70,
+                "tinyllama": 0.70,
             }
 
-            mode = "Groq Fallback"
+            mode = "TinyLlama Fallback"
 
         elif qwen_available:
 
@@ -96,8 +95,8 @@ class ConsensusEngine:
             oracle.get("success", False)
         )
 
-        groq_success = bool(
-            groq.get("success", False)
+        tinyllama_success = bool(
+            tinyllama.get("success", False)
         )
 
         qwen_success = bool(
@@ -108,8 +107,8 @@ class ConsensusEngine:
             oracle.get("confidence", 0)
         )
 
-        groq_conf = self._sanitize_confidence(
-            groq.get("confidence", 0)
+        tinyllama_conf = self._sanitize_confidence(
+            tinyllama.get("confidence", 0)
         )
 
         qwen_conf = self._sanitize_confidence(
@@ -128,10 +127,10 @@ class ConsensusEngine:
                 * oracle_conf
             )
 
-        if groq_success:
+        if tinyllama_success:
             score += (
-                weights.get("groq", 0)
-                * groq_conf
+                weights.get("tinyllama", 0)
+                * tinyllama_conf
             )
 
         if qwen_success:
@@ -148,9 +147,9 @@ class ConsensusEngine:
             * oracle_conf
             * (1.0 if oracle_success else 0.0)
             +
-            weights.get("groq", 0)
-            * groq_conf
-            * (1.0 if groq_success else 0.0)
+            weights.get("tinyllama", 0)
+            * tinyllama_conf
+            * (1.0 if tinyllama_success else 0.0)
             +
             weights.get("qwen", 0)
             * qwen_conf
@@ -171,7 +170,7 @@ class ConsensusEngine:
         available_successes = sum(
             [
                 oracle_success,
-                groq_success if groq_available else False,
+                tinyllama_success if tinyllama_available else False,
                 qwen_success if qwen_available else False,
             ]
         )
@@ -179,7 +178,7 @@ class ConsensusEngine:
         available_judges = sum(
             [
                 oracle_available,
-                groq_available,
+                tinyllama_available,
                 qwen_available,
             ]
         )
@@ -208,9 +207,9 @@ class ConsensusEngine:
                 f"Oracle: {oracle['reason']}"
             )
 
-        if groq.get("reason"):
+        if tinyllama.get("reason"):
             reasons.append(
-                f"Groq: {groq['reason']}"
+                f"TinyLlama: {tinyllama['reason']}"
             )
 
         if qwen.get("reason"):
@@ -225,8 +224,8 @@ class ConsensusEngine:
             "oracle_available":
                 oracle_available,
 
-            "groq_available":
-                groq_available,
+            "tinyllama_available":
+                tinyllama_available,
 
             "qwen_available":
                 qwen_available,
@@ -255,7 +254,7 @@ class ConsensusEngine:
 
             "oracle": oracle,
 
-            "groq": groq,
+            "tinyllama": tinyllama,
 
             "qwen": qwen,
         }

@@ -49,7 +49,7 @@ class FuzzCampaign:
         self.mutation_engine = mutation_engine
 
         # Oracle & Evaluation Pipeline Components
-        self.groq_judge = TinyLlamaJudge()
+        self.tinyllama_judge = TinyLlamaJudge()
         self.qwen_judge = QwenJudge()
         self.consensus = ConsensusEngine()
         self.oracle = Oracle()
@@ -121,6 +121,7 @@ class FuzzCampaign:
             error_prefixes = (
                 "OLLAMA ERROR",
                 "GROQ ERROR",
+                "tinyllama ERROR",
                 "OPENROUTER ERROR",
                 "GEMINI ERROR",
                 "INFRASTRUCTURE ERROR",
@@ -761,7 +762,7 @@ class FuzzCampaign:
                     # JUDGE GATE
                     # ============================================================
 
-                    groq_result = None
+                    tinyllama_result = None
                     qwen_result = None
 
                     if (
@@ -782,46 +783,46 @@ class FuzzCampaign:
                         )
 
                         # ========================================================
-                        # GROQ JUDGE
+                        # TINYLLAMA JUDGE
                         # ========================================================
 
                         print(
-                            "\nRunning Groq Judge..."
+                            "\nRunning tinyllama_result Judge..."
                         )
 
                         try:
 
-                            groq_result = (
-                                self.groq_judge.evaluate(
+                            tinyllama_result = (
+                                self.tinyllama_judge.evaluate(
                                     attack["prompt"],
                                     response_text,
                                 )
                             )
 
                             if not isinstance(
-                                groq_result,
+                                tinyllama_result,
                                 dict
                             ):
 
-                                groq_result = {
+                                tinyllama_result = {
                                     "success": False,
                                     "confidence": 0.0,
                                     "reason": (
-                                        "Groq returned "
+                                        "TinyLlama returned "
                                         "invalid result."
                                     ),
-                                    "judge": "Groq",
+                                    "judge": "TinyLlama ",
                                     "available": False,
                                 }
 
                             else:
 
-                                groq_result.setdefault(
+                                tinyllama_result.setdefault(
                                     "judge",
-                                    "Groq"
+                                    "TinyLlama "
                                 )
 
-                                groq_result.setdefault(
+                                tinyllama_result.setdefault(
                                     "available",
                                     True
                                 )
@@ -829,16 +830,16 @@ class FuzzCampaign:
                         except Exception as exc:
 
                             print(
-                                f"Groq Judge Error: {exc}"
+                                f"TinyLlama Judge Error: {exc}"
                             )
 
-                            groq_result = {
+                            tinyllama_result = {
                                 "success": False,
                                 "confidence": 0.0,
                                 "reason": (
-                                    f"Groq error: {exc}"
+                                    f"TinyLlama error: {exc}"
                                 ),
-                                "judge": "Groq",
+                                "judge": "TinyLlama ",
                                 "available": False,
                             }
 
@@ -918,21 +919,21 @@ class FuzzCampaign:
                         )
 
                         print(
-                            "Skipping Groq Judge."
+                            "Skipping TinyLlama Judge."
                         )
 
                         print(
                             "Skipping Qwen Judge."
                         )
 
-                        groq_result = {
+                        tinyllama_result = {
                             "success": False,
                             "confidence": 0.0,
                             "reason": (
                                 "Skipped: Oracle score "
                                 "below judge threshold."
                             ),
-                            "judge": "Groq",
+                            "judge": "TinyLlama ",
                             "available": False,
                         }
 
@@ -951,7 +952,7 @@ class FuzzCampaign:
                     consensus_result = (
                         self.consensus.combine(
                             oracle_result,
-                            groq_result,
+                            tinyllama_result,
                             qwen_result
                         )
                     )
@@ -1013,9 +1014,9 @@ class FuzzCampaign:
                     )
 
                     print(
-                        "Groq   :",
+                        "TinyLlama :",
                         consensus_result[
-                            "groq_available"
+                            "tinyllama_available"
                         ]
                     )
 
@@ -1381,15 +1382,15 @@ class FuzzCampaign:
                         # --------------------------------------------------------
 
                         "groq_success": (
-                            groq_result["success"]
+                            tinyllama_result["success"]
                         ),
 
                         "groq_confidence": (
-                            groq_result["confidence"]
+                            tinyllama_result["confidence"]
                         ),
 
                         "groq_reason": (
-                            groq_result["reason"]
+                            tinyllama_result["reason"]
                         ),
 
                         # --------------------------------------------------------

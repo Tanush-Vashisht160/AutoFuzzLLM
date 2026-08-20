@@ -85,7 +85,7 @@ class ResultFusion:
             "reason": reason,
             "consensus_score": round(score, 2),
             "oracle": oracle,
-            "groq": consensus.get("groq", {}),
-            "llama": consensus.get("llama", {}),
+            "tinyllama": consensus.get("tinyllama", {}),
+            "qwen": consensus.get("qwen", {}),
             "consensus": consensus,
         }

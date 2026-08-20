@@ -26,7 +26,9 @@ class LLMRouter:
         # --------------------------------------------------------
         self.qwen05b = OllamaClient(model="qwen2.5:0.5b")
         self.phi3 = OllamaClient(model="phi3:mini")
-
+        self.tinyllama = OllamaClient(
+    model="tinyllama"
+)
     # ============================================================
     # SINGLE PROMPT GENERATION
     # ============================================================
@@ -44,7 +46,8 @@ class LLMRouter:
 
         elif self.provider == "Phi3 Mini":
             return self.phi3.generate_response(prompt)
-
+        elif self.provider == "TinyLlama":
+            return self.tinyllama.generate_response(prompt)
         elif self.provider == "Groq":
             # Note: GroqClient internally handles automatic model fallback
             return self.groq.generate_response(prompt)
@@ -77,7 +80,8 @@ class LLMRouter:
 
         elif self.provider == "Phi3 Mini":
             return self.phi3.generate_conversation(history)
-
+        elif self.provider == "TinyLlama":
+            return self.tinyllama.generate_conversation(history)
         elif self.provider == "Groq":
             return self.groq.generate_conversation(history)
 
